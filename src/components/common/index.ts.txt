@@ -1,0 +1,20 @@
+// THRIVE SYSTEM - Common Components Export
+// Centralized export for all reusable components
+
+export { ThriveCard } from './ThriveCard';
+export { MetricCard } from './MetricCard';
+export { StatusBadge } from './StatusBadge';
+export { LoadingSpinner } from './LoadingSpinner';
+export { ErrorBoundary, ErrorBoundaryProvider } from './ErrorBoundary';
+export { default as FallbackUI } from './FallbackUI';
+
+// Re-export UI components for convenience
+export { Button } from '@/components/ui/button';
+export { Badge } from '@/components/ui/badge';
+export { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+export { Progress } from '@/components/ui/progress';
+export { Input } from '@/components/ui/input';
+export { Textarea } from '@/components/ui/textarea';
+export { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+export { ScrollArea } from '@/components/ui/scroll-area';
+export { Separator } from '@/components/ui/separator';

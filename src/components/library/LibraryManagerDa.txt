@@ -1,0 +1,380 @@
+import { useState, useEffect } from 'react';
+import { Search, Filter, Grid, List, Package, Target, BookOpen, Clock, Plus, Eye, Settings, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import { MetricCard } from '@/components/common';
+import CassetteCreatorModal from './CassetteCreatorModal';
+import CassetteGrid from './CassetteGrid';
+import GapManagementDashboard from './GapManagementDashboard';
+import LibraryManagerXRay from './LibraryManagerXRay';
+import CategoryTree from './CategoryTree';
+
+interface Cassette {
+  id: string;
+  name: string;
+  category: string;
+  subcategory: number;
+  serial: number;
+  status: 'existing' | 'missing' | 'draft' | 'deprecated';
+  coherence: number;
+  usageCount: number;
+  quickScan: string;
+  basicUnderstanding: string;
+  fullContent: string;
+  tags: string[];
+  priority: number;
+  createdAt: Date;
+  updatedAt: Date;
+  lastUsed?: Date;
+  blockedBy?: string[];
+  requestedBy?: string;
+  approvalScore?: number;
+}
+
+const LibraryManagerDashboard = () => {
+  const [cassettes, setCassettes] = useState<Cassette[]>([]);
+  const [filteredCassettes, setFilteredCassettes] = useState<Cassette[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'compact'>('grid');
+  const [showCreator, setShowCreator] = useState(false);
+  const [showXRay, setShowXRay] = useState(false);
+  const [loading, setLoading] = useState(true);
+  
+  // Agent state
+  const [agentState, setAgentState] = useState({
+    agentId: 'library_manager_001',
+    microPrompt: 'META.11.001',
+    loadedCassettes: 26,
+    coherenceScore: 98.7,
+    autonomyLevel: 75,
+    isActive: true
+  });
+
+  // Library statistics
+  const stats = {
+    total: 935,
+    existing: 52,
+    missing: 123,
+    draft: 8,
+    categories: 11,
+    averageCoherence: 96.8,
+    criticalGaps: 23,
+    qualityChecks: 7
+  };
+
+  const categories = [
+    { id: 'all', name: 'All Categories', count: stats.total },
+    { id: 'META', name: 'META - System Core', count: 47, color: 'bg-blue-500' },
+    { id: 'M', name: 'M - Methodologies', count: 89, color: 'bg-green-500' },
+    { id: 'S', name: 'S - Skills', count: 134, color: 'bg-yellow-500' },
+    { id: 'P', name: 'P - Processes', count: 112, color: 'bg-purple-500' },
+    { id: 'V', name: 'V - Values', count: 78, color: 'bg-pink-500' },
+    { id: 'I', name: 'I - Identity', count: 56, color: 'bg-indigo-500' },
+    { id: 'K', name: 'K - Knowledge', count: 198, color: 'bg-cyan-500' },
+    { id: 'L', name: 'L - Learning', count: 87, color: 'bg-orange-500' },
+    { id: 'E', name: 'E - Evolution', count: 65, color: 'bg-red-500' },
+    { id: 'INT', name: 'INT - Integrations', count: 43, color: 'bg-gray-500' },
+    { id: 'REG', name: 'REG - Regulations', count: 26, color: 'bg-stone-500' }
+  ];
+
+  // Mock cassettes data
+  useEffect(() => {
+    const loadCassettes = async () => {
+      setLoading(true);
+      
+      // Simulate API call
+      const mockCassettes: Cassette[] = [
+        {
+          id: 'META.3.001',
+          name: 'Library Management Charter',
+          category: 'META',
+          subcategory: 3,
+          serial: 1,
+          status: 'existing',
+          coherence: 99.2,
+          usageCount: 456,
+          quickScan: '🎯 Goal: Establish library governance framework\n⚡ Capability: Foundation\n🏷️ #governance #charter #foundation',
+          basicUnderstanding: '📋 Executive Summary:\n• Define library management principles\n• Establish governance structure\n• Set operational standards\n\n⚙️ Core Process: [Policy → Structure → Standards]\n✅ Expected Result: Consistent library operations',
+          fullContent: 'Complete governance framework for cassette library management including policies, procedures, and standards...',
+          tags: ['governance', 'charter', 'foundation'],
+          priority: 4,
+          createdAt: new Date('2024-01-15'),
+          updatedAt: new Date('2024-02-20'),
+          lastUsed: new Date('2024-02-25')
+        },
+        {
+          id: 'META.8.003',
+          name: 'Library Request API',
+          category: 'META',
+          subcategory: 8,
+          serial: 3,
+          status: 'missing',
+          coherence: 0,
+          usageCount: 0,
+          quickScan: '',
+          basicUnderstanding: '',
+          fullContent: '',
+          tags: [],
+          priority: 3,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          blockedBy: ['nucleus_creation', 'agent_spawning'],
+          requestedBy: 'THRIVE_OS',
+          approvalScore: 92
+        },
+        {
+          id: 'K.2.001',
+          name: 'Library Science Fundamentals',
+          category: 'K',
+          subcategory: 2,
+          serial: 1,
+          status: 'existing',
+          coherence: 97.8,
+          usageCount: 234,
+          quickScan: '🎯 Goal: Master library science principles\n⚡ Capability: Knowledge\n🏷️ #library #science #fundamentals',
+          basicUnderstanding: '📋 Executive Summary:\n• Information organization principles\n• Cataloging and classification\n• Access and retrieval methods\n\n⚙️ Core Process: [Organize → Catalog → Retrieve]\n✅ Expected Result: Efficient knowledge management',
+          fullContent: 'Comprehensive guide to library science fundamentals including information theory, cataloging standards, and retrieval systems...',
+          tags: ['library', 'science', 'fundamentals'],
+          priority: 3,
+          createdAt: new Date('2024-01-20'),
+          updatedAt: new Date('2024-02-18'),
+          lastUsed: new Date('2024-02-23')
+        }
+      ];
+      
+      setCassettes(mockCassettes);
+      setFilteredCassettes(mockCassettes);
+      setLoading(false);
+    };
+
+    loadCassettes();
+  }, []);
+
+  // Filter cassettes
+  useEffect(() => {
+    let filtered = cassettes;
+
+    if (searchQuery) {
+      filtered = filtered.filter(cassette =>
+        cassette.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        cassette.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        cassette.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+    }
+
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(cassette => cassette.category === selectedCategory);
+    }
+
+    setFilteredCassettes(filtered);
+  }, [cassettes, searchQuery, selectedCategory]);
+
+  const handleCreateCassette = (cassetteData: any) => {
+    const newCassette: Cassette = {
+      ...cassetteData,
+      id: `${cassetteData.category}.${cassetteData.subcategory}.${String(cassetteData.serial).padStart(3, '0')}`,
+      status: 'existing',
+      coherence: Math.random() * 10 + 90, // 90-100%
+      usageCount: 0,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    setCassettes(prev => [...prev, newCassette]);
+    setShowCreator(false);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'existing': return 'text-coherence-high';
+      case 'missing': return 'text-coherence-low';
+      case 'draft': return 'text-coherence-mid';
+      case 'deprecated': return 'text-muted-foreground';
+      default: return 'text-muted-foreground';
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="border-b border-border bg-card p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-gradient-dna rounded-lg">
+              <BookOpen className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Library Manager</h1>
+              <p className="text-muted-foreground">Guardian of 935 cassettes with 98%+ coherence</p>
+              <div className="flex items-center gap-4 mt-2">
+                <Badge variant="outline" className="gap-1">
+                  <div className="w-2 h-2 bg-coherence-high rounded-full animate-pulse" />
+                  Agent Active
+                </Badge>
+                <Badge variant="secondary">
+                  Coherence: {agentState.coherenceScore}%
+                </Badge>
+                <Badge variant="secondary">
+                  {agentState.loadedCassettes} Cassettes Loaded
+                </Badge>
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => setShowXRay(true)} className="gap-2">
+              <Eye className="h-4 w-4" />
+              Agent X-Ray
+            </Button>
+            <Button onClick={() => setShowCreator(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Create Cassette
+            </Button>
+          </div>
+        </div>
+
+        {/* Statistics Bar */}
+        <div className="grid grid-cols-6 gap-4 mb-6">
+          <MetricCard
+            title="Total Cassettes"
+            value={stats.total.toString()}
+            icon={Package}
+            variant="default"
+          />
+          <MetricCard
+            title="Existing"
+            value={stats.existing.toString()}
+            icon={Target}
+            variant="success"
+          />
+          <MetricCard
+            title="Missing"
+            value={stats.missing.toString()}
+            icon={Clock}
+            variant="warning"
+          />
+          <MetricCard
+            title="Coherence"
+            value={`${stats.averageCoherence}%`}
+            icon={Zap}
+            variant="success"
+          />
+          <MetricCard
+            title="Categories"
+            value={stats.categories.toString()}
+            icon={Filter}
+            variant="default"
+          />
+          <MetricCard
+            title="Critical Gaps"
+            value={stats.criticalGaps.toString()}
+            icon={Settings}
+            variant="error"
+          />
+        </div>
+
+        {/* Search and Filters */}
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by ID, name, content, or tags..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map(cat => (
+                <SelectItem key={cat.id} value={cat.id}>
+                  <div className="flex items-center gap-2">
+                    {cat.id !== 'all' && (
+                      <div className={`w-3 h-3 rounded-full ${cat.color}`} />
+                    )}
+                    <span>{cat.name}</span>
+                    <Badge variant="secondary" className="text-xs ml-auto">
+                      {cat.count}
+                    </Badge>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('grid')}
+            >
+              <Grid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content - 3 Column Layout */}
+      <div className="flex h-[calc(100vh-280px)]">
+        {/* Left Panel - Category Tree */}
+        <div className="w-1/5 border-r border-border bg-muted/20 p-4">
+          <CategoryTree
+            categories={categories}
+            selectedCategory={selectedCategory}
+            onCategorySelect={setSelectedCategory}
+          />
+        </div>
+
+        {/* Center Panel - Cassette Grid */}
+        <div className="flex-1 p-4">
+          <CassetteGrid
+            cassettes={filteredCassettes}
+            viewMode={viewMode}
+            loading={loading}
+            onCassetteSelect={(cassette) => console.log('Selected:', cassette)}
+            onCreateFromGap={(gapId) => setShowCreator(true)}
+          />
+        </div>
+
+        {/* Right Panel - Actions & Gaps */}
+        <div className="w-1/5 border-l border-border bg-muted/20 p-4">
+          <GapManagementDashboard
+            onCreateFromGap={(gapId) => setShowCreator(true)}
+          />
+        </div>
+      </div>
+
+      {/* Modals */}
+      {showCreator && (
+        <CassetteCreatorModal
+          onClose={() => setShowCreator(false)}
+          onSave={handleCreateCassette}
+        />
+      )}
+
+      {showXRay && (
+        <LibraryManagerXRay
+          agentState={agentState}
+          onClose={() => setShowXRay(false)}
+        />
+      )}
+    </div>
+  );
+};
+
+export default LibraryManagerDashboard;

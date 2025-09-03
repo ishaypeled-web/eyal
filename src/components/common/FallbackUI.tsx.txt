@@ -1,0 +1,119 @@
+import React from 'react';
+import { AlertTriangle, RefreshCw, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+
+interface FallbackUIProps {
+  type?: 'error' | 'loading' | 'empty' | 'network';
+  title?: string;
+  message?: string;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
+  className?: string;
+  size?: 'sm' | 'md' | 'lg';
+}
+
+const FallbackUI: React.FC<FallbackUIProps> = ({
+  type = 'error',
+  title,
+  message,
+  action,
+  className,
+  size = 'md'
+}) => {
+  const getIcon = () => {
+    switch (type) {
+      case 'loading':
+        return <Loader2 className="w-8 h-8 text-primary animate-spin" />;
+      case 'empty':
+        return <div className="w-8 h-8 rounded-full bg-muted" />;
+      case 'network':
+        return <AlertTriangle className="w-8 h-8 text-orange-400" />;
+      default:
+        return <AlertTriangle className="w-8 h-8 text-destructive" />;
+    }
+  };
+
+  const getDefaultTitle = () => {
+    switch (type) {
+      case 'loading':
+        return 'Loading THRIVE System...';
+      case 'empty':
+        return 'No Data Available';
+      case 'network':
+        return 'Connection Issue';
+      default:
+        return 'System Error';
+    }
+  };
+
+  const getDefaultMessage = () => {
+    switch (type) {
+      case 'loading':
+        return 'Initializing quantum protocols and neural networks...';
+      case 'empty':
+        return 'This component has no data to display at the moment.';
+      case 'network':
+        return 'Unable to connect to THRIVE servers. Check your connection.';
+      default:
+        return 'An unexpected error occurred. The incident has been logged.';
+    }
+  };
+
+  const sizeClasses = {
+    sm: 'p-4 max-w-sm',
+    md: 'p-6 max-w-md',
+    lg: 'p-8 max-w-lg'
+  };
+
+  return (
+    <div className={cn(
+      "flex items-center justify-center",
+      size === 'sm' ? 'min-h-32' : size === 'md' ? 'min-h-48' : 'min-h-64',
+      className
+    )}>
+      <Card className={cn(
+        "text-center",
+        sizeClasses[size]
+      )}>
+        <div className="mb-4">
+          {getIcon()}
+        </div>
+        
+        <h3 className="text-lg font-semibold text-foreground mb-2">
+          {title || getDefaultTitle()}
+        </h3>
+        
+        <p className="text-sm text-muted-foreground mb-4">
+          {message || getDefaultMessage()}
+        </p>
+
+        {action && (
+          <Button
+            onClick={action.onClick}
+            variant={type === 'error' ? 'destructive' : 'default'}
+            size="sm"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            {action.label}
+          </Button>
+        )}
+
+        {type === 'loading' && (
+          <div className="mt-4">
+            <div className="flex items-center justify-center space-x-1">
+              <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+              <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+              <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            </div>
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+};
+
+export default FallbackUI;

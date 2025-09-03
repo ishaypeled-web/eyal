@@ -1,0 +1,281 @@
+import React, { useState } from 'react';
+import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { ThriveCard, Button, Badge } from '@/components/common';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TrendingUp, TrendingDown, Activity, BarChart3 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { ChartDataPoint, TrendData } from '@/types';
+
+interface CoherenceHistoryViewProps {
+  className?: string;
+}
+
+export const CoherenceHistoryView: React.FC<CoherenceHistoryViewProps> = ({ 
+  className 
+}) => {
+  const [selectedTimeframe, setSelectedTimeframe] = useState<'1H' | '24H' | '7D' | '30D'>('24H');
+  const [chartType, setChartType] = useState<'line' | 'area' | 'heatmap'>('area');
+
+  // Mock data for different timeframes
+  const generateData = (timeframe: string) => {
+    const hours = timeframe === '1H' ? 1 : timeframe === '24H' ? 24 : timeframe === '7D' ? 168 : 720;
+    const points = timeframe === '1H' ? 60 : timeframe === '24H' ? 24 : timeframe === '7D' ? 168 : 30;
+    
+    return Array.from({ length: points }, (_, i) => {
+      const baseCoherence = 96 + Math.random() * 3;
+      const agentCoherence = baseCoherence + (Math.random() - 0.5) * 2;
+      const conversationCoherence = baseCoherence + (Math.random() - 0.5) * 1.5;
+      const systemCoherence = baseCoherence + (Math.random() - 0.5) * 1;
+      
+      return {
+        name: timeframe === '30D' ? `Day ${i + 1}` : `${i}:00`,
+        overall: Math.max(90, Math.min(100, baseCoherence)),
+        agent: Math.max(88, Math.min(100, agentCoherence)),
+        conversation: Math.max(89, Math.min(100, conversationCoherence)),
+        system: Math.max(91, Math.min(100, systemCoherence))
+      };
+    });
+  };
+
+  const [data] = useState(generateData(selectedTimeframe));
+
+  const trendData: TrendData = {
+    direction: 'up',
+    percentage: 2.3,
+    period: selectedTimeframe,
+    description: 'Overall coherence improved by 2.3% in the last 24H'
+  };
+
+  const componentBreakdown = {
+    agent_coherence: 97.2,
+    conversation_coherence: 98.1,
+    system_coherence: 96.8
+  };
+
+  const getCoherenceColor = (value: number) => {
+    if (value >= 98) return 'text-coherence-high';
+    if (value >= 95) return 'text-coherence-mid';
+    return 'text-coherence-low';
+  };
+
+  const handleTimeframeChange = (timeframe: '1H' | '24H' | '7D' | '30D') => {
+    setSelectedTimeframe(timeframe);
+  };
+
+  return (
+    <ThriveCard variant="glassmorphism" className={cn('p-6', className)}>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <Activity className="w-6 h-6 text-primary" />
+          <h2 className="text-xl font-semibold text-foreground">Coherence History</h2>
+        </div>
+        
+        {/* Timeframe Selector */}
+        <div className="flex items-center gap-2">
+          {(['1H', '24H', '7D', '30D'] as const).map(timeframe => (
+            <Button
+              key={timeframe}
+              variant={selectedTimeframe === timeframe ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => handleTimeframeChange(timeframe)}
+            >
+              {timeframe}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {/* Trend Analysis */}
+      <div className="grid grid-cols-4 gap-4 mb-6">
+        <ThriveCard variant="solid" className="p-4">
+          <div className="flex items-center gap-2 mb-2">
+            {trendData.direction === 'up' ? (
+              <TrendingUp className="w-4 h-4 text-coherence-high" />
+            ) : (
+              <TrendingDown className="w-4 h-4 text-coherence-low" />
+            )}
+            <span className="text-sm font-medium">Trend</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className={cn(
+              'text-lg font-bold',
+              trendData.direction === 'up' ? 'text-coherence-high' : 'text-coherence-low'
+            )}>
+              {trendData.direction === 'up' ? '+' : '-'}{trendData.percentage}%
+            </span>
+            <span className="text-xs text-muted-foreground">{trendData.period}</span>
+          </div>
+        </ThriveCard>
+
+        <ThriveCard variant="solid" className="p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <BarChart3 className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium">Agent</span>
+          </div>
+          <div className={cn('text-lg font-bold', getCoherenceColor(componentBreakdown.agent_coherence))}>
+            {componentBreakdown.agent_coherence}%
+          </div>
+        </ThriveCard>
+
+        <ThriveCard variant="solid" className="p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Activity className="w-4 h-4 text-secondary" />
+            <span className="text-sm font-medium">Conversation</span>
+          </div>
+          <div className={cn('text-lg font-bold', getCoherenceColor(componentBreakdown.conversation_coherence))}>
+            {componentBreakdown.conversation_coherence}%
+          </div>
+        </ThriveCard>
+
+        <ThriveCard variant="solid" className="p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Activity className="w-4 h-4 text-accent" />
+            <span className="text-sm font-medium">System</span>
+          </div>
+          <div className={cn('text-lg font-bold', getCoherenceColor(componentBreakdown.system_coherence))}>
+            {componentBreakdown.system_coherence}%
+          </div>
+        </ThriveCard>
+      </div>
+
+      {/* Chart Type Selector */}
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-sm text-muted-foreground">Chart type:</span>
+        {(['line', 'area'] as const).map(type => (
+          <Button
+            key={type}
+            variant={chartType === type ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setChartType(type)}
+          >
+            {type.charAt(0).toUpperCase() + type.slice(1)}
+          </Button>
+        ))}
+      </div>
+
+      {/* Chart */}
+      <div className="h-80 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          {chartType === 'area' ? (
+            <AreaChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+              <XAxis 
+                dataKey="name" 
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={12}
+              />
+              <YAxis 
+                domain={[85, 100]}
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={12}
+              />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: 'hsl(var(--card))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px',
+                  color: 'hsl(var(--foreground))'
+                }}
+              />
+              <Area
+                type="monotone"
+                dataKey="overall"
+                stroke="hsl(var(--primary))"
+                fill="hsl(var(--primary) / 0.2)"
+                strokeWidth={2}
+                name="Overall Coherence"
+              />
+              <Area
+                type="monotone"
+                dataKey="agent"
+                stroke="hsl(var(--coherence-high))"
+                fill="hsl(var(--coherence-high) / 0.1)"
+                strokeWidth={1}
+                name="Agent Coherence"
+              />
+              <Area
+                type="monotone"
+                dataKey="conversation"
+                stroke="hsl(var(--secondary))"
+                fill="hsl(var(--secondary) / 0.1)"
+                strokeWidth={1}
+                name="Conversation Coherence"
+              />
+              <Area
+                type="monotone"
+                dataKey="system"
+                stroke="hsl(var(--accent))"
+                fill="hsl(var(--accent) / 0.1)"
+                strokeWidth={1}
+                name="System Coherence"
+              />
+            </AreaChart>
+          ) : (
+            <LineChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+              <XAxis 
+                dataKey="name" 
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={12}
+              />
+              <YAxis 
+                domain={[85, 100]}
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={12}
+              />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: 'hsl(var(--card))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px',
+                  color: 'hsl(var(--foreground))'
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="overall"
+                stroke="hsl(var(--primary))"
+                strokeWidth={3}
+                dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
+                name="Overall Coherence"
+              />
+              <Line
+                type="monotone"
+                dataKey="agent"
+                stroke="hsl(var(--coherence-high))"
+                strokeWidth={2}
+                dot={{ fill: 'hsl(var(--coherence-high))', strokeWidth: 2, r: 3 }}
+                name="Agent Coherence"
+              />
+              <Line
+                type="monotone"
+                dataKey="conversation"
+                stroke="hsl(var(--secondary))"
+                strokeWidth={2}
+                dot={{ fill: 'hsl(var(--secondary))', strokeWidth: 2, r: 3 }}
+                name="Conversation Coherence"
+              />
+              <Line
+                type="monotone"
+                dataKey="system"
+                stroke="hsl(var(--accent))"
+                strokeWidth={2}
+                dot={{ fill: 'hsl(var(--accent))', strokeWidth: 2, r: 3 }}
+                name="System Coherence"
+              />
+            </LineChart>
+          )}
+        </ResponsiveContainer>
+      </div>
+
+      {/* Analysis */}
+      <div className="mt-4 p-4 bg-muted/20 rounded-lg">
+        <p className="text-sm text-muted-foreground">
+          {trendData.description}
+        </p>
+      </div>
+    </ThriveCard>
+  );
+};
+
+export default CoherenceHistoryView;

@@ -1,0 +1,49 @@
+import React from 'react';
+import { cn } from '@/lib/utils';
+import { BaseComponentProps } from '@/types';
+
+interface LoadingSpinnerProps extends BaseComponentProps {
+  size?: 'sm' | 'md' | 'lg';
+  variant?: 'default' | 'primary' | 'secondary';
+}
+
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+  size = 'md',
+  variant = 'default',
+  className
+}) => {
+  const getSizeClasses = () => {
+    switch (size) {
+      case 'sm':
+        return 'w-4 h-4';
+      case 'lg':
+        return 'w-8 h-8';
+      default:
+        return 'w-6 h-6';
+    }
+  };
+
+  const getVariantClasses = () => {
+    switch (variant) {
+      case 'primary':
+        return 'border-primary border-t-transparent';
+      case 'secondary':
+        return 'border-secondary border-t-transparent';
+      default:
+        return 'border-muted-foreground border-t-transparent';
+    }
+  };
+
+  return (
+    <div
+      className={cn(
+        'animate-spin rounded-full border-2',
+        getSizeClasses(),
+        getVariantClasses(),
+        className
+      )}
+    />
+  );
+};
+
+export default LoadingSpinner;

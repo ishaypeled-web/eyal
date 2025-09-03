@@ -1,0 +1,359 @@
+import { useState } from 'react';
+import { Zap, Filter, Search, CheckCircle, AlertTriangle, Sparkles, Target, Brain, Settings } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Slider } from '@/components/ui/slider';
+import { Separator } from '@/components/ui/separator';
+
+interface DNAWorkshopProps {
+  dnaProfile: any;
+  onComplete: (refinedDNA: any) => void;
+}
+
+const DNAWorkshop = ({ dnaProfile, onComplete }: DNAWorkshopProps) => {
+  const [activeTab, setActiveTab] = useState('noise-filter');
+  const [noiseFiltered, setNoiseFiltered] = useState(false);
+  const [gapsIdentified, setGapsIdentified] = useState(false);
+  const [coherenceValidated, setCoherenceValidated] = useState(false);
+  
+  const [refinements, setRefinements] = useState({
+    noiseSeparation: '',
+    gapFilling: '',
+    coherenceAdjustments: '',
+    priorityWeights: {
+      achievement: [70],
+      relationships: [60],
+      learning: [80],
+      impact: [75],
+      autonomy: [65]
+    }
+  });
+
+  // Mock noise detection
+  const detectedNoise = [
+    { type: 'Societal Pressure', content: 'Expected to follow traditional career path', confidence: 85 },
+    { type: 'Past Limitations', content: 'Previous failures affecting current goals', confidence: 72 },
+    { type: 'External Expectations', content: 'Family expectations conflicting with personal values', confidence: 91 },
+    { type: 'Fear-based Decisions', content: 'Avoiding risks due to fear of failure', confidence: 68 }
+  ];
+
+  // Mock gap identification
+  const identifiedGaps = [
+    { area: 'Technical Skills', description: 'Advanced AI/ML knowledge gap for future goals', severity: 'High', recommendation: 'Focus on technical education' },
+    { area: 'Network Building', description: 'Limited professional network in target industry', severity: 'Medium', recommendation: 'Expand industry connections' },
+    { area: 'Leadership Experience', description: 'Lack of formal leadership roles', severity: 'Medium', recommendation: 'Seek leadership opportunities' },
+    { area: 'Creative Expression', description: 'Underutilized creative potential', severity: 'Low', recommendation: 'Explore creative outlets' }
+  ];
+
+  // Mock coherence issues
+  const coherenceIssues = [
+    { type: 'Value-Action Mismatch', description: 'Actions not aligned with stated values', score: 65 },
+    { type: 'Goal Conflict', description: 'Short-term and long-term goals conflicting', score: 78 },
+    { type: 'Identity Inconsistency', description: 'Professional vs personal identity gaps', score: 82 },
+    { type: 'Priority Confusion', description: 'Unclear priority ranking of life areas', score: 71 }
+  ];
+
+  const handleNoiseFiltering = () => {
+    if (refinements.noiseSeparation.trim()) {
+      setNoiseFiltered(true);
+      if (activeTab === 'noise-filter') {
+        setActiveTab('gap-identification');
+      }
+    }
+  };
+
+  const handleGapFilling = () => {
+    if (refinements.gapFilling.trim()) {
+      setGapsIdentified(true);
+      if (activeTab === 'gap-identification') {
+        setActiveTab('coherence-validation');
+      }
+    }
+  };
+
+  const handleCoherenceValidation = () => {
+    if (refinements.coherenceAdjustments.trim()) {
+      setCoherenceValidated(true);
+    }
+  };
+
+  const handleComplete = () => {
+    const refinedDNA = {
+      ...dnaProfile,
+      refinements,
+      noiseFiltered: refinements.noiseSeparation,
+      gapsFilled: refinements.gapFilling,
+      coherenceValidated: refinements.coherenceAdjustments,
+      finalCoherenceScore: Math.min(100, dnaProfile.coherenceScore + 15),
+      refinementTimestamp: new Date()
+    };
+    
+    onComplete(refinedDNA);
+  };
+
+  const isComplete = noiseFiltered && gapsIdentified && coherenceValidated;
+  const completedSteps = [noiseFiltered, gapsIdentified, coherenceValidated].filter(Boolean).length;
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <Settings className="h-8 w-8 text-primary animate-spin" style={{ animationDuration: '3s' }} />
+          <h2 className="text-2xl font-bold">DNA Refinement Workshop</h2>
+        </div>
+        <p className="text-muted-foreground">
+          Refine your DNA profile by filtering noise, filling gaps, and validating coherence
+        </p>
+      </div>
+
+      {/* Progress */}
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm">
+          <span>Refinement Progress</span>
+          <span>{completedSteps} of 3 steps completed</span>
+        </div>
+        <Progress value={(completedSteps / 3) * 100} className="h-2" />
+      </div>
+
+      {/* Workshop Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="noise-filter" className="gap-2">
+            <Filter className="h-4 w-4" />
+            Noise Filter
+            {noiseFiltered && <CheckCircle className="h-4 w-4 text-coherence-high" />}
+          </TabsTrigger>
+          <TabsTrigger value="gap-identification" className="gap-2">
+            <Search className="h-4 w-4" />
+            Gap Analysis
+            {gapsIdentified && <CheckCircle className="h-4 w-4 text-coherence-high" />}
+          </TabsTrigger>
+          <TabsTrigger value="coherence-validation" className="gap-2">
+            <Target className="h-4 w-4" />
+            Coherence Check
+            {coherenceValidated && <CheckCircle className="h-4 w-4 text-coherence-high" />}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="noise-filter" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="h-5 w-5" />
+                Noise Separation Tool
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Identify and separate external influences from your authentic core
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h4 className="font-medium mb-3">Detected Noise Patterns</h4>
+                <div className="space-y-2">
+                  {detectedNoise.map((noise, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex-1">
+                        <div className="font-medium text-sm">{noise.type}</div>
+                        <div className="text-xs text-muted-foreground">{noise.content}</div>
+                      </div>
+                      <Badge variant={noise.confidence > 80 ? 'destructive' : 'secondary'} className="text-xs">
+                        {noise.confidence}% confident
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <Separator />
+              
+              <div>
+                <h4 className="font-medium mb-2">Noise Separation Strategy</h4>
+                <Textarea
+                  placeholder="Describe how you want to filter out external noise and focus on your authentic core..."
+                  value={refinements.noiseSeparation}
+                  onChange={(e) => setRefinements(prev => ({ ...prev, noiseSeparation: e.target.value }))}
+                  className="min-h-[120px]"
+                />
+                <Button 
+                  onClick={handleNoiseFiltering}
+                  disabled={!refinements.noiseSeparation.trim()}
+                  className="mt-3 gap-2"
+                >
+                  <Zap className="h-4 w-4" />
+                  Apply Noise Filter
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="gap-identification" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Search className="h-5 w-5" />
+                Gap Analysis Tool
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Identify and address gaps between current state and desired goals
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h4 className="font-medium mb-3">Identified Gaps</h4>
+                <div className="space-y-2">
+                  {identifiedGaps.map((gap, index) => (
+                    <div key={index} className="p-3 border rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="font-medium text-sm">{gap.area}</div>
+                        <Badge variant={gap.severity === 'High' ? 'destructive' : gap.severity === 'Medium' ? 'default' : 'secondary'}>
+                          {gap.severity}
+                        </Badge>
+                      </div>
+                      <div className="text-xs text-muted-foreground mb-1">{gap.description}</div>
+                      <div className="text-xs text-primary">{gap.recommendation}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <Separator />
+              
+              <div>
+                <h4 className="font-medium mb-2">Gap Filling Strategy</h4>
+                <Textarea
+                  placeholder="Describe your plan to address these gaps and accelerate your growth..."
+                  value={refinements.gapFilling}
+                  onChange={(e) => setRefinements(prev => ({ ...prev, gapFilling: e.target.value }))}
+                  className="min-h-[120px]"
+                />
+                <Button 
+                  onClick={handleGapFilling}
+                  disabled={!refinements.gapFilling.trim()}
+                  className="mt-3 gap-2"
+                >
+                  <Search className="h-4 w-4" />
+                  Apply Gap Analysis
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="coherence-validation" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5" />
+                Coherence Validation Tool
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Validate and optimize internal coherence and alignment
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h4 className="font-medium mb-3">Coherence Analysis</h4>
+                <div className="space-y-3">
+                  {coherenceIssues.map((issue, index) => (
+                    <div key={index} className="p-3 border rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="font-medium text-sm">{issue.type}</div>
+                        <div className="flex items-center gap-2">
+                          <Progress value={issue.score} className="w-20 h-2" />
+                          <span className="text-xs font-mono">{issue.score}%</span>
+                        </div>
+                      </div>
+                      <div className="text-xs text-muted-foreground">{issue.description}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+
+              <div>
+                <h4 className="font-medium mb-3">Priority Weights</h4>
+                <div className="space-y-4">
+                  {Object.entries(refinements.priorityWeights).map(([key, value]) => (
+                    <div key={key} className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                        <span className="font-mono">{value[0]}%</span>
+                      </div>
+                      <Slider
+                        value={value}
+                        onValueChange={(newValue) => setRefinements(prev => ({
+                          ...prev,
+                          priorityWeights: {
+                            ...prev.priorityWeights,
+                            [key]: newValue
+                          }
+                        }))}
+                        max={100}
+                        step={5}
+                        className="w-full"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <Separator />
+              
+              <div>
+                <h4 className="font-medium mb-2">Coherence Optimization</h4>
+                <Textarea
+                  placeholder="Describe how you want to improve coherence and alignment across your life areas..."
+                  value={refinements.coherenceAdjustments}
+                  onChange={(e) => setRefinements(prev => ({ ...prev, coherenceAdjustments: e.target.value }))}
+                  className="min-h-[120px]"
+                />
+                <Button 
+                  onClick={handleCoherenceValidation}
+                  disabled={!refinements.coherenceAdjustments.trim()}
+                  className="mt-3 gap-2"
+                >
+                  <Target className="h-4 w-4" />
+                  Validate Coherence
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Summary and Complete */}
+      {isComplete && (
+        <Card className="border-primary/50 bg-primary/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Refinement Complete
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                Your DNA profile has been refined and optimized. The coherence score has improved from{' '}
+                <span className="font-mono text-foreground">{dnaProfile.coherenceScore}%</span> to{' '}
+                <span className="font-mono text-primary">{Math.min(100, dnaProfile.coherenceScore + 15)}%</span>.
+              </div>
+              <Button onClick={handleComplete} className="w-full gap-2">
+                <Brain className="h-4 w-4" />
+                Finalize DNA Refinement
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};
+
+export default DNAWorkshop;

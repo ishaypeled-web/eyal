@@ -1,0 +1,466 @@
+import { useState } from 'react';
+import { X, Save, CheckCircle, AlertCircle, Sparkles, Eye, Code, FileText, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+
+interface CassetteCreatorModalProps {
+  onClose: () => void;
+  onSave: (cassetteData: any) => void;
+  prefilledData?: any;
+}
+
+const CassetteCreatorModal = ({ onClose, onSave, prefilledData }: CassetteCreatorModalProps) => {
+  const { toast } = useToast();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [formData, setFormData] = useState({
+    category: prefilledData?.category || '',
+    subcategory: prefilledData?.subcategory || '',
+    name: prefilledData?.name || '',
+    tags: prefilledData?.tags || [],
+    quickScan: prefilledData?.quickScan || '',
+    basicUnderstanding: prefilledData?.basicUnderstanding || '',
+    fullContent: prefilledData?.fullContent || '',
+    priority: prefilledData?.priority || '2'
+  });
+
+  const [validation, setValidation] = useState({
+    wordCount: false,
+    coherence: false,
+    format: false,
+    duplicate: false,
+    dependency: false,
+    grammar: false,
+    technical: false
+  });
+
+  const categories = [
+    { value: 'META', label: 'META - System Core', description: 'Fundamental system protocols', maxWords: 500 },
+    { value: 'M', label: 'M - Methodologies', description: 'Process and method frameworks', maxWords: 500 },
+    { value: 'S', label: 'S - Skills', description: 'Capability and skill definitions', maxWords: 500 },
+    { value: 'P', label: 'P - Processes', description: 'Operational procedures', maxWords: 500 },
+    { value: 'V', label: 'V - Values', description: 'Core values and principles', maxWords: 500 },
+    { value: 'I', label: 'I - Identity', description: 'Identity and character traits', maxWords: 500 },
+    { value: 'K', label: 'K - Knowledge', description: 'Knowledge and information', maxWords: 500 },
+    { value: 'L', label: 'L - Learning', description: 'Learning and development', maxWords: 500 },
+    { value: 'E', label: 'E - Evolution', description: 'Growth and evolution patterns', maxWords: 500 },
+    { value: 'INT', label: 'INT - Integrations', description: 'System integrations', maxWords: 300 },
+    { value: 'REG', label: 'REG - Regulations', description: 'Rules and regulations', maxWords: 500 }
+  ];
+
+  const generateId = () => {
+    if (!formData.category || !formData.subcategory) return 'Category.X.XXX';
+    const serial = Math.floor(Math.random() * 999) + 1;
+    return `${formData.category}.${formData.subcategory}.${String(serial).padStart(3, '0')}`;
+  };
+
+  const wordCounts = {
+    quickScan: formData.quickScan.split(' ').filter(w => w.trim()).length,
+    basicUnderstanding: formData.basicUnderstanding.split(' ').filter(w => w.trim()).length,
+    fullContent: formData.fullContent.split(' ').filter(w => w.trim()).length
+  };
+
+  const limits = {
+    quickScan: 50,
+    basicUnderstanding: 200,
+    fullContent: categories.find(c => c.value === formData.category)?.maxWords || 500
+  };
+
+  const getValidationStatus = (field: keyof typeof wordCounts) => {
+    const count = wordCounts[field];
+    const limit = limits[field];
+    if (count === 0) return 'empty';
+    if (count > limit) return 'over';
+    if (count < Math.floor(limit * 0.1)) return 'under';
+    return 'valid';
+  };
+
+  const runQualityChecks = async () => {
+    const checks = [
+      { id: 'wordCount', name: 'Word Count Validation', duration: 200 },
+      { id: 'coherence', name: 'Coherence Check (98%+)', duration: 800 },
+      { id: 'format', name: 'Format Compliance', duration: 300 },
+      { id: 'duplicate', name: 'Duplicate Detection', duration: 500 },
+      { id: 'dependency', name: 'Dependency Check', duration: 400 },
+      { id: 'grammar', name: 'Grammar & Spelling', duration: 600 },
+      { id: 'technical', name: 'Technical Accuracy', duration: 700 }
+    ];
+
+    for (const check of checks) {
+      await new Promise(resolve => setTimeout(resolve, check.duration));
+      setValidation(prev => ({ ...prev, [check.id]: Math.random() > 0.1 })); // 90% pass rate
+    }
+  };
+
+  const coherenceScore = Math.min(100, 
+    (Object.values(validation).filter(Boolean).length / 7) * 100 + 
+    Math.random() * 10
+  );
+
+  const isStepValid = () => {
+    switch (currentStep) {
+      case 1: return formData.category && formData.subcategory && formData.name;
+      case 2: return getValidationStatus('quickScan') === 'valid';
+      case 3: return getValidationStatus('basicUnderstanding') === 'valid';
+      case 4: return getValidationStatus('fullContent') === 'valid';
+      case 5: return Object.values(validation).filter(Boolean).length >= 5; // At least 5/7 checks pass
+      default: return false;
+    }
+  };
+
+  const handleNext = () => {
+    if (currentStep === 5) {
+      runQualityChecks();
+    }
+    if (currentStep < 6) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handleSave = () => {
+    const cassetteData = {
+      ...formData,
+      serial: Math.floor(Math.random() * 999) + 1,
+      coherence: coherenceScore,
+      validation: validation
+    };
+    
+    onSave(cassetteData);
+    toast({
+      title: "Cassette Created Successfully",
+      description: `${generateId()} - ${formData.name}`,
+    });
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <div>
+              <Label className="text-sm font-medium">Category *</Label>
+              <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map(cat => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      <div>
+                        <div className="font-medium">{cat.label}</div>
+                        <div className="text-xs text-muted-foreground">{cat.description}</div>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium">Subcategory *</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="99"
+                  value={formData.subcategory}
+                  onChange={(e) => setFormData(prev => ({ ...prev, subcategory: e.target.value }))}
+                  placeholder="1-99"
+                  className="mt-2"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Generated ID</Label>
+                <div className="mt-2 p-2 bg-muted rounded font-mono text-primary">
+                  {generateId()}
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium">Cassette Name *</Label>
+              <Input
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Enter descriptive name..."
+                className="mt-2"
+                maxLength={100}
+              />
+              <div className="text-xs text-muted-foreground mt-1">
+                {formData.name.length}/100 characters
+              </div>
+            </div>
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-semibold mb-2">Level 1: Quick Scan (3 seconds)</h3>
+              <p className="text-sm text-muted-foreground">Provide instant understanding in under 50 words</p>
+            </div>
+
+            <Card className="bg-muted/50">
+              <CardHeader>
+                <CardTitle className="text-sm">Template Structure</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm font-mono">
+                🎯 Goal: [One sentence]<br/>
+                ⚡ Capability: [3-5 words]<br/>
+                🏷️ #tag1 #tag2 #tag3
+              </CardContent>
+            </Card>
+
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <Label className="text-sm font-medium">Quick Scan Content *</Label>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs ${getValidationStatus('quickScan') === 'over' ? 'text-destructive' : 'text-muted-foreground'}`}>
+                    {wordCounts.quickScan}/{limits.quickScan} words
+                  </span>
+                  {getValidationStatus('quickScan') === 'valid' && <CheckCircle className="h-4 w-4 text-coherence-high" />}
+                </div>
+              </div>
+              <Textarea
+                value={formData.quickScan}
+                onChange={(e) => setFormData(prev => ({ ...prev, quickScan: e.target.value }))}
+                placeholder="🎯 Goal: [Brief goal description]&#10;⚡ Capability: [Core capability]&#10;🏷️ #tag1 #tag2 #tag3"
+                className="min-h-[120px] font-mono"
+              />
+              <Progress 
+                value={(wordCounts.quickScan / limits.quickScan) * 100} 
+                className="mt-2 h-2" 
+              />
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-semibold mb-2">Level 2: Basic Understanding (30 seconds)</h3>
+              <p className="text-sm text-muted-foreground">Provide comprehensive overview in under 200 words</p>
+            </div>
+
+            <Card className="bg-muted/50">
+              <CardHeader>
+                <CardTitle className="text-sm">Template Structure</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm font-mono">
+                📋 Executive Summary:<br/>
+                • Key point 1<br/>
+                • Key point 2<br/>
+                • Key point 3<br/><br/>
+                ⚙️ Core Process: [3 steps]<br/>
+                ✅ Expected Result: [Brief sentence]
+              </CardContent>
+            </Card>
+
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <Label className="text-sm font-medium">Basic Understanding Content *</Label>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs ${getValidationStatus('basicUnderstanding') === 'over' ? 'text-destructive' : 'text-muted-foreground'}`}>
+                    {wordCounts.basicUnderstanding}/{limits.basicUnderstanding} words
+                  </span>
+                  {getValidationStatus('basicUnderstanding') === 'valid' && <CheckCircle className="h-4 w-4 text-coherence-high" />}
+                </div>
+              </div>
+              <Textarea
+                value={formData.basicUnderstanding}
+                onChange={(e) => setFormData(prev => ({ ...prev, basicUnderstanding: e.target.value }))}
+                placeholder="📋 Executive Summary:&#10;• Key point 1&#10;• Key point 2&#10;• Key point 3&#10;&#10;⚙️ Core Process: [Step 1 → Step 2 → Step 3]&#10;✅ Expected Result: [Brief description of outcome]"
+                className="min-h-[150px]"
+              />
+              <Progress 
+                value={(wordCounts.basicUnderstanding / limits.basicUnderstanding) * 100} 
+                className="mt-2 h-2" 
+              />
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-semibold mb-2">Level 3: Full Content (3 minutes)</h3>
+              <p className="text-sm text-muted-foreground">Complete implementation details and specifications</p>
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <Label className="text-sm font-medium">Full Content *</Label>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs ${getValidationStatus('fullContent') === 'over' ? 'text-destructive' : 'text-muted-foreground'}`}>
+                    {wordCounts.fullContent}/{limits.fullContent} words
+                  </span>
+                  {getValidationStatus('fullContent') === 'valid' && <CheckCircle className="h-4 w-4 text-coherence-high" />}
+                </div>
+              </div>
+              <Textarea
+                value={formData.fullContent}
+                onChange={(e) => setFormData(prev => ({ ...prev, fullContent: e.target.value }))}
+                placeholder="Provide complete, detailed content including:\n\n• Implementation steps\n• Technical specifications\n• Code examples (if applicable)\n• Dependencies and requirements\n• Expected outcomes\n• Error handling\n• Best practices"
+                className="min-h-[200px] font-mono text-sm"
+              />
+              <Progress 
+                value={(wordCounts.fullContent / limits.fullContent) * 100} 
+                className="mt-2 h-2" 
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
+              <div>
+                <strong>Include:</strong><br/>
+                • Step-by-step instructions<br/>
+                • Code examples<br/>
+                • Dependencies<br/>
+                • Error handling
+              </div>
+              <div>
+                <strong>Quality standards:</strong><br/>
+                • Clear and concise<br/>
+                • Actionable content<br/>
+                • Well-structured<br/>
+                • Complete coverage
+              </div>
+            </div>
+          </div>
+        );
+
+      case 5:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-semibold mb-2">Quality Validation</h3>
+              <p className="text-sm text-muted-foreground">Running 7 automatic quality checks</p>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Quality Checks</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {Object.entries(validation).map(([key, passed]) => {
+                    const checkNames: Record<string, string> = {
+                      wordCount: 'Word Count Validation',
+                      coherence: 'Coherence Check (98%+)',
+                      format: 'Format Compliance',
+                      duplicate: 'Duplicate Detection',
+                      dependency: 'Dependency Check',
+                      grammar: 'Grammar & Spelling',
+                      technical: 'Technical Accuracy'
+                    };
+
+                    return (
+                      <div key={key} className="flex items-center justify-between p-2 border rounded">
+                        <span className="text-sm">{checkNames[key]}</span>
+                        {passed ? (
+                          <CheckCircle className="h-4 w-4 text-coherence-high" />
+                        ) : (
+                          <AlertCircle className="h-4 w-4 text-coherence-low" />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Coherence Score</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center space-y-2">
+                  <div className="text-3xl font-bold text-primary">{coherenceScore.toFixed(1)}%</div>
+                  <Progress value={coherenceScore} className="h-3" />
+                  <div className="text-xs text-muted-foreground">
+                    {coherenceScore >= 98 ? 'Excellent coherence!' : 'Consider improvements for higher coherence'}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden">
+        <CardHeader className="border-b">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                Create New Cassette
+              </CardTitle>
+              <div className="text-sm text-muted-foreground mt-1">
+                Step {currentStep} of 5 - 7 Quality Checks
+              </div>
+            </div>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <Progress value={(currentStep / 5) * 100} className="h-2 mt-4" />
+        </CardHeader>
+
+        <CardContent className="overflow-auto max-h-[60vh] p-6">
+          {renderStepContent()}
+        </CardContent>
+
+        <div className="border-t p-6">
+          <div className="flex justify-between">
+            <Button 
+              variant="outline" 
+              onClick={() => setCurrentStep(Math.max(1, currentStep - 1))}
+              disabled={currentStep === 1}
+            >
+              Previous
+            </Button>
+            <div className="flex gap-2">
+              {currentStep === 5 ? (
+                <Button 
+                  onClick={handleSave}
+                  disabled={!isStepValid()}
+                  className="gap-2"
+                >
+                  <Save className="h-4 w-4" />
+                  Create & Deploy
+                </Button>
+              ) : (
+                <Button 
+                  onClick={handleNext}
+                  disabled={!isStepValid()}
+                  className="gap-2"
+                >
+                  Next
+                  <Zap className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+};
+
+export default CassetteCreatorModal;

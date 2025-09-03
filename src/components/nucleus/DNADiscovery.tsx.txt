@@ -1,0 +1,270 @@
+import { useState } from 'react';
+import { ChevronRight, Clock, Dna, Lightbulb, Target, Users, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+
+interface DNADiscoveryProps {
+  onComplete: (profile: any) => void;
+}
+
+const DNADiscovery = ({ onComplete }: DNADiscoveryProps) => {
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [timeLeft, setTimeLeft] = useState(900); // 15 minutes in seconds
+
+  const questions = [
+    {
+      id: 'primary_drive',
+      title: 'Primary Drive',
+      description: 'What fundamentally drives you?',
+      type: 'radio',
+      options: [
+        { value: 'achievement', label: 'Achievement & Success', description: 'Driven by accomplishment and recognition' },
+        { value: 'knowledge', label: 'Knowledge & Understanding', description: 'Driven by learning and comprehension' },
+        { value: 'connection', label: 'Connection & Relationships', description: 'Driven by meaningful relationships' },
+        { value: 'impact', label: 'Impact & Change', description: 'Driven by making a difference' },
+        { value: 'freedom', label: 'Freedom & Autonomy', description: 'Driven by independence and choice' }
+      ]
+    },
+    {
+      id: 'decision_style',
+      title: 'Decision Style',
+      description: 'How do you typically make important decisions?',
+      type: 'radio',
+      options: [
+        { value: 'analytical', label: 'Analytical', description: 'Data-driven, systematic approach' },
+        { value: 'intuitive', label: 'Intuitive', description: 'Gut feeling and instinct-based' },
+        { value: 'collaborative', label: 'Collaborative', description: 'Seek input from others' },
+        { value: 'quick', label: 'Quick & Decisive', description: 'Fast decisions with available info' },
+        { value: 'contemplative', label: 'Contemplative', description: 'Deep reflection and consideration' }
+      ]
+    },
+    {
+      id: 'communication_style',
+      title: 'Communication Style',
+      description: 'How do you prefer to communicate and interact?',
+      type: 'radio',
+      options: [
+        { value: 'direct', label: 'Direct & Clear', description: 'Straightforward, no-nonsense communication' },
+        { value: 'diplomatic', label: 'Diplomatic & Tactful', description: 'Careful, considerate approach' },
+        { value: 'inspiring', label: 'Inspiring & Motivational', description: 'Energetic, uplifting communication' },
+        { value: 'supportive', label: 'Supportive & Empathetic', description: 'Understanding, caring approach' },
+        { value: 'logical', label: 'Logical & Structured', description: 'Fact-based, organized communication' }
+      ]
+    },
+    {
+      id: 'work_style',
+      title: 'Work Style',
+      description: 'What work environment brings out your best?',
+      type: 'radio',
+      options: [
+        { value: 'independent', label: 'Independent & Solo', description: 'Work best alone with minimal supervision' },
+        { value: 'collaborative', label: 'Collaborative & Team-oriented', description: 'Thrive in team environments' },
+        { value: 'leadership', label: 'Leadership & Direction', description: 'Lead teams and provide direction' },
+        { value: 'supportive', label: 'Supportive & Assisting', description: 'Support others and help them succeed' },
+        { value: 'innovative', label: 'Innovative & Creative', description: 'Generate new ideas and solutions' }
+      ]
+    },
+    {
+      id: 'stress_response',
+      title: 'Stress Response',
+      description: 'How do you typically respond to high stress or pressure?',
+      type: 'radio',
+      options: [
+        { value: 'focused', label: 'Become More Focused', description: 'Channel stress into concentrated effort' },
+        { value: 'seek_support', label: 'Seek Support', description: 'Reach out to others for help' },
+        { value: 'problem_solve', label: 'Problem-Solve', description: 'Immediately start finding solutions' },
+        { value: 'step_back', label: 'Step Back & Reflect', description: 'Take time to gain perspective' },
+        { value: 'push_through', label: 'Push Through', description: 'Power through with determination' }
+      ]
+    },
+    {
+      id: 'learning_style',
+      title: 'Learning Style',
+      description: 'How do you best acquire new knowledge and skills?',
+      type: 'radio',
+      options: [
+        { value: 'hands_on', label: 'Hands-on Experience', description: 'Learn by doing and practicing' },
+        { value: 'research', label: 'Research & Study', description: 'Deep reading and analysis' },
+        { value: 'discussion', label: 'Discussion & Dialogue', description: 'Learn through conversation' },
+        { value: 'observation', label: 'Observation & Modeling', description: 'Watch and mimic others' },
+        { value: 'experimentation', label: 'Experimentation', description: 'Trial and error approach' }
+      ]
+    },
+    {
+      id: 'values_priorities',
+      title: 'Core Values',
+      description: 'What values are most important to you?',
+      type: 'textarea',
+      placeholder: 'Describe your core values and what principles guide your decisions...'
+    },
+    {
+      id: 'vision_goals',
+      title: 'Vision & Goals',
+      description: 'What do you want to achieve in the next 5-10 years?',
+      type: 'textarea',
+      placeholder: 'Describe your long-term vision and major goals...'
+    },
+    {
+      id: 'unique_strengths',
+      title: 'Unique Strengths',
+      description: 'What are your unique strengths and what makes you distinctive?',
+      type: 'textarea',
+      placeholder: 'Describe what you excel at and what sets you apart...'
+    }
+  ];
+
+  const handleAnswer = (questionId: string, value: any) => {
+    setAnswers(prev => ({ ...prev, [questionId]: value }));
+  };
+
+  const handleNext = () => {
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else {
+      // Complete the discovery process
+      const profile = generateDNAProfile(answers);
+      onComplete(profile);
+    }
+  };
+
+  const generateDNAProfile = (answers: Record<string, any>) => {
+    // Simulate DNA profile generation based on answers
+    return {
+      id: `DNA-${Date.now()}`,
+      coreTraits: {
+        drive: answers.primary_drive || 'achievement',
+        decisionStyle: answers.decision_style || 'analytical',
+        communicationStyle: answers.communication_style || 'direct',
+        workStyle: answers.work_style || 'independent',
+        stressResponse: answers.stress_response || 'focused',
+        learningStyle: answers.learning_style || 'hands_on'
+      },
+      values: answers.values_priorities || '',
+      vision: answers.vision_goals || '',
+      strengths: answers.unique_strengths || '',
+      coherenceScore: Math.floor(Math.random() * 20) + 80, // 80-100%
+      timestamp: new Date()
+    };
+  };
+
+  const isCurrentQuestionAnswered = () => {
+    const question = questions[currentQuestion];
+    return answers[question.id] !== undefined && answers[question.id] !== '';
+  };
+
+  const progress = ((currentQuestion + 1) / questions.length) * 100;
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <Dna className="h-8 w-8 text-primary animate-dna-helix" />
+          <h2 className="text-2xl font-bold">DNA Discovery</h2>
+        </div>
+        <p className="text-muted-foreground">
+          Discover your unique cognitive and behavioral patterns
+        </p>
+        <div className="flex items-center justify-center gap-4 mt-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <Clock className="h-4 w-4" />
+            <span>~15 minutes</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Target className="h-4 w-4" />
+            <span>{questions.length} questions</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Progress */}
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm">
+          <span>Progress</span>
+          <span>{currentQuestion + 1} of {questions.length}</span>
+        </div>
+        <Progress value={progress} className="h-2" />
+      </div>
+
+      {/* Current Question */}
+      <Card className="border-primary/20">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className="text-xs">
+              Question {currentQuestion + 1}
+            </Badge>
+            <CardTitle className="text-xl">
+              {questions[currentQuestion].title}
+            </CardTitle>
+          </div>
+          <p className="text-muted-foreground">
+            {questions[currentQuestion].description}
+          </p>
+        </CardHeader>
+        <CardContent>
+          {questions[currentQuestion].type === 'radio' ? (
+            <RadioGroup
+              value={answers[questions[currentQuestion].id] || ''}
+              onValueChange={(value) => handleAnswer(questions[currentQuestion].id, value)}
+              className="space-y-3"
+            >
+              {questions[currentQuestion].options?.map((option) => (
+                <div key={option.value} className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                  <RadioGroupItem value={option.value} id={option.value} className="mt-0.5" />
+                  <div className="flex-1">
+                    <Label htmlFor={option.value} className="font-medium cursor-pointer">
+                      {option.label}
+                    </Label>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {option.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </RadioGroup>
+          ) : (
+            <Textarea
+              placeholder={questions[currentQuestion].placeholder}
+              value={answers[questions[currentQuestion].id] || ''}
+              onChange={(e) => handleAnswer(questions[currentQuestion].id, e.target.value)}
+              className="min-h-[120px]"
+            />
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Navigation */}
+      <div className="flex justify-between items-center pt-4">
+        <Button
+          variant="outline"
+          onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))}
+          disabled={currentQuestion === 0}
+        >
+          Previous
+        </Button>
+        
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Lightbulb className="h-4 w-4" />
+          <span>Answer honestly for the most accurate DNA profile</span>
+        </div>
+
+        <Button
+          onClick={handleNext}
+          disabled={!isCurrentQuestionAnswered()}
+          className="gap-2"
+        >
+          {currentQuestion === questions.length - 1 ? 'Generate DNA Profile' : 'Next'}
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+export default DNADiscovery;

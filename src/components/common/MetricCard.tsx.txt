@@ -1,0 +1,74 @@
+import React from 'react';
+import { ThriveCard } from './ThriveCard';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { MetricCardProps } from '@/types';
+
+export const MetricCard: React.FC<MetricCardProps> = ({
+  title,
+  value,
+  change,
+  icon: Icon,
+  variant = 'default',
+  className,
+  children
+}) => {
+  const getVariantStyles = () => {
+    switch (variant) {
+      case 'success':
+        return 'border-coherence-high/50 bg-coherence-high/5';
+      case 'warning':
+        return 'border-coherence-mid/50 bg-coherence-mid/5';
+      case 'error':
+        return 'border-destructive/50 bg-destructive/5';
+      default:
+        return '';
+    }
+  };
+
+  const getChangeColor = () => {
+    if (!change) return '';
+    const isPositive = change.startsWith('+');
+    const isNegative = change.startsWith('-');
+    
+    if (isPositive) return 'text-coherence-high';
+    if (isNegative) return 'text-destructive';
+    return 'text-muted-foreground';
+  };
+
+  return (
+    <ThriveCard 
+      variant="glassmorphism" 
+      size="lg"
+      className={cn(getVariantStyles(), className)}
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            {Icon && <Icon className="w-4 h-4 text-muted-foreground" />}
+            <p className="text-sm font-medium text-muted-foreground">{title}</p>
+          </div>
+          
+          <div className="flex items-end gap-2">
+            <p className="text-2xl font-bold text-foreground">
+              {typeof value === 'number' ? value.toLocaleString() : value}
+            </p>
+            
+            {change && (
+              <Badge 
+                variant="outline" 
+                className={cn('text-xs', getChangeColor())}
+              >
+                {change}
+              </Badge>
+            )}
+          </div>
+        </div>
+        
+        {children}
+      </div>
+    </ThriveCard>
+  );
+};
+
+export default MetricCard;

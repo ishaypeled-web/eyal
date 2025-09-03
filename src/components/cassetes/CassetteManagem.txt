@@ -1,0 +1,322 @@
+import { useState } from 'react';
+import { Plus, Search, Filter, Grid, List, MoreHorizontal, Eye, Edit, Trash2, Package, Target, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Separator } from '@/components/ui/separator';
+import CassetteCreator from './CassetteCreator';
+import { MetricCard } from '@/components/common';
+
+interface Cassette {
+  id: string;
+  name: string;
+  category: string;
+  status: 'existing' | 'missing' | 'draft';
+  coherence: number;
+  usageCount: number;
+  quickScan: string;
+  basicUnderstanding: string;
+  fullContent: string;
+  tags: string[];
+  priority: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const CassetteManagement = () => {
+  const [showCreator, setShowCreator] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showMissing, setShowMissing] = useState(true);
+
+  // Mock data - 52 existing, 123 missing for 935 total
+  const mockCassettes: Cassette[] = [
+    {
+      id: 'META.1.001',
+      name: 'System Foundation Protocol',
+      category: 'META',
+      status: 'existing',
+      coherence: 98.5,
+      usageCount: 245,
+      quickScan: 'Core system initialization and DNA framework establishment.',
+      basicUnderstanding: 'Establishes fundamental protocols for THRIVE system initialization, including DNA framework setup and core operational parameters.',
+      fullContent: 'Complete system foundation protocol that handles initialization, DNA framework establishment, core operational parameters, and system coherence baselines...',
+      tags: ['foundation', 'core', 'initialization'],
+      priority: 4,
+      createdAt: new Date('2024-01-15'),
+      updatedAt: new Date('2024-02-20')
+    },
+    {
+      id: 'META.1.002',
+      name: 'Coherence Monitoring Base',
+      category: 'META',
+      status: 'existing',
+      coherence: 97.2,
+      usageCount: 189,
+      quickScan: 'Real-time coherence tracking and system health monitoring.',
+      basicUnderstanding: 'Provides continuous monitoring of system coherence levels, automated alerts, and performance optimization recommendations.',
+      fullContent: 'Advanced coherence monitoring system that tracks real-time performance metrics, identifies anomalies, and provides automated optimization suggestions...',
+      tags: ['monitoring', 'coherence', 'health'],
+      priority: 4,
+      createdAt: new Date('2024-01-20'),
+      updatedAt: new Date('2024-02-18')
+    },
+    {
+      id: 'META.1.003',
+      name: 'Agent Communication Hub',
+      category: 'META',
+      status: 'missing',
+      coherence: 0,
+      usageCount: 0,
+      quickScan: '',
+      basicUnderstanding: '',
+      fullContent: '',
+      tags: [],
+      priority: 3,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+  ];
+
+  const categories = [
+    'all', 'META', 'CORE', 'NEURAL', 'QUANTUM', 'DNA', 'AGENT', 
+    'COMM', 'SECURE', 'ADAPT', 'LEARN', 'EVOLVE'
+  ];
+
+  const stats = {
+    total: 935,
+    existing: 52,
+    missing: 123,
+    categories: 11,
+    averageCoherence: 96.8
+  };
+
+  const filteredCassettes = mockCassettes.filter(cassette => {
+    const matchesCategory = selectedCategory === 'all' || cassette.category === selectedCategory;
+    const matchesSearch = cassette.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         cassette.id.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesVisibility = showMissing || cassette.status !== 'missing';
+    
+    return matchesCategory && matchesSearch && matchesVisibility;
+  });
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'existing': return 'bg-coherence-high';
+      case 'draft': return 'bg-coherence-mid';
+      case 'missing': return 'bg-coherence-low';
+      default: return 'bg-muted';
+    }
+  };
+
+  const CassetteCard = ({ cassette }: { cassette: Cassette }) => (
+    <Card className={`transition-all duration-200 hover:shadow-lg hover:scale-105 ${
+      cassette.status === 'missing' ? 'opacity-50 border-dashed' : ''
+    }`}>
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="space-y-1">
+            <div className="text-xs text-muted-foreground font-mono">{cassette.id}</div>
+            <CardTitle className="text-sm leading-tight">{cassette.name}</CardTitle>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>
+                <Eye className="mr-2 h-4 w-4" />
+                View Details
+              </DropdownMenuItem>
+              {cassette.status === 'existing' && (
+                <DropdownMenuItem>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem className="text-destructive">
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-xs">
+            {cassette.category}
+          </Badge>
+          <div className={`w-2 h-2 rounded-full ${getStatusColor(cassette.status)}`} />
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0">
+        {cassette.status === 'existing' ? (
+          <>
+            <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+              {cassette.quickScan}
+            </p>
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs">
+                <span>Coherence</span>
+                <span className="font-mono text-coherence-high">{cassette.coherence}%</span>
+              </div>
+              <Progress value={cassette.coherence} className="h-1" />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Usage: {cassette.usageCount}</span>
+                <span>Priority: {cassette.priority}</span>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-4">
+            <Package className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+            <p className="text-xs text-muted-foreground">Cassette Missing</p>
+            <Button size="sm" variant="outline" className="mt-2" onClick={() => setShowCreator(true)}>
+              Create
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <div className="h-screen bg-background overflow-hidden">
+      {/* Header */}
+      <div className="border-b border-border bg-card p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Cassette Management</h1>
+            <p className="text-sm text-muted-foreground">Manage system cassettes and knowledge modules</p>
+          </div>
+          <Button onClick={() => setShowCreator(true)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Create Cassette
+          </Button>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-5 gap-4 mb-6">
+          <MetricCard
+            title="Total Cassettes"
+            value={stats.total.toString()}
+            icon={Package}
+            variant="default"
+          />
+          <MetricCard
+            title="Existing"
+            value={stats.existing.toString()}
+            icon={Target}
+            variant="success"
+          />
+          <MetricCard
+            title="Missing"
+            value={stats.missing.toString()}
+            icon={Clock}
+            variant="warning"
+          />
+          <MetricCard
+            title="Categories"
+            value={stats.categories.toString()}
+            icon={Filter}
+            variant="default"
+          />
+          <MetricCard
+            title="Avg Coherence"
+            value={`${stats.averageCoherence}%`}
+            icon={Target}
+            variant="success"
+          />
+        </div>
+
+        {/* Controls */}
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search cassettes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map(cat => (
+                <SelectItem key={cat} value={cat}>
+                  {cat === 'all' ? 'All Categories' : cat}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('grid')}
+            >
+              <Grid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
+          <Button
+            variant={showMissing ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setShowMissing(!showMissing)}
+          >
+            Show Missing
+          </Button>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-auto p-6">
+        <div className={`grid gap-4 ${
+          viewMode === 'grid' 
+            ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
+            : 'grid-cols-1'
+        }`}>
+          {filteredCassettes.map(cassette => (
+            <CassetteCard key={cassette.id} cassette={cassette} />
+          ))}
+        </div>
+
+        {filteredCassettes.length === 0 && (
+          <div className="text-center py-12">
+            <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-lg font-semibold mb-2">No cassettes found</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Try adjusting your filters or create a new cassette
+            </p>
+            <Button onClick={() => setShowCreator(true)}>
+              Create First Cassette
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Creator Modal */}
+      {showCreator && (
+        <CassetteCreator onClose={() => setShowCreator(false)} />
+      )}
+    </div>
+  );
+};
+
+export default CassetteManagement;

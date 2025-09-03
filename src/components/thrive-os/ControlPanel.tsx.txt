@@ -1,0 +1,26 @@
+// THRIVE OS Control Panel
+import React from 'react';
+import { QuickControls } from './QuickControls';
+import { LiveMetricsDisplay } from './LiveMetricsDisplay';
+import { AgentStatusGrid } from './AgentStatusGrid';
+import { AlertsFeed } from './AlertsFeed';
+
+export const ControlPanel = () => {
+  return (
+    <div className="h-full flex flex-col">
+      {/* Panel Header */}
+      <div className="p-4 border-b border-os-bg-tertiary">
+        <h2 className="text-lg font-semibold text-os-primary">Control Panel</h2>
+      </div>
+
+      <div className="flex-1 overflow-auto">
+        <div className="p-4 space-y-6">
+          <QuickControls />
+          <LiveMetricsDisplay />
+          <AgentStatusGrid />
+          <AlertsFeed />
+        </div>
+      </div>
+    </div>
+  );
+};

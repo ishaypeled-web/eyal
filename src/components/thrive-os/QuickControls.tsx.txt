@@ -1,0 +1,59 @@
+// THRIVE OS Quick Controls
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Plus, Users, Zap, Activity, Pause, FileText, Settings, Square } from 'lucide-react';
+
+export const QuickControls = () => {
+  const primaryActions = [
+    { label: 'Create Cassette', icon: Plus, action: 'create_cassette', hotkey: 'Ctrl+N', color: 'bg-os-primary hover:bg-os-primary/90' },
+    { label: 'Spawn Agent', icon: Users, action: 'spawn_agent', hotkey: 'Ctrl+A', color: 'bg-os-secondary hover:bg-os-secondary/90' },
+    { label: 'Create NUCLEUS', icon: Zap, action: 'create_nucleus', hotkey: 'Ctrl+Shift+N', color: 'bg-os-warning hover:bg-os-warning/90' },
+    { label: 'Check Coherence', icon: Activity, action: 'check_coherence', hotkey: 'Ctrl+H', color: 'bg-gradient-dna hover:opacity-90' }
+  ];
+
+  const systemControls = [
+    { label: 'Pause All', icon: Pause, action: 'pause_all', color: 'bg-os-warning hover:bg-os-warning/90' },
+    { label: 'System Logs', icon: FileText, action: 'system_logs', color: 'bg-os-bg-tertiary hover:bg-os-bg-tertiary/80' },
+    { label: 'Settings', icon: Settings, action: 'settings', color: 'bg-os-bg-tertiary hover:bg-os-bg-tertiary/80' },
+    { label: 'Emergency Stop', icon: Square, action: 'emergency_stop', color: 'bg-os-accent hover:bg-os-accent/90', confirmation: true }
+  ];
+
+  const handleAction = (action: string, confirmation?: boolean) => {
+    if (confirmation && !window.confirm('Are you sure?')) return;
+    console.log('Executing:', action);
+  };
+
+  return (
+    <Card className="bg-os-bg-secondary border-os-bg-tertiary">
+      <CardHeader><CardTitle className="text-os-primary">Quick Controls</CardTitle></CardHeader>
+      <CardContent className="space-y-4">
+        <div>
+          <h4 className="text-sm font-medium text-muted-foreground mb-3">Primary Actions</h4>
+          <div className="grid grid-cols-2 gap-2">
+            {primaryActions.map((action) => (
+              <Button key={action.action} onClick={() => handleAction(action.action)} className={`h-auto p-3 flex flex-col items-center gap-2 text-white ${action.color}`}>
+                <action.icon className="w-4 h-4" />
+                <div className="text-center">
+                  <div className="text-xs font-medium">{action.label}</div>
+                  <div className="text-xs opacity-70">{action.hotkey}</div>
+                </div>
+              </Button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <h4 className="text-sm font-medium text-muted-foreground mb-3">System Controls</h4>
+          <div className="grid grid-cols-2 gap-2">
+            {systemControls.map((control) => (
+              <Button key={control.action} onClick={() => handleAction(control.action, control.confirmation)} className={`h-auto p-3 flex flex-col items-center gap-2 text-white ${control.color}`}>
+                <control.icon className="w-4 h-4" />
+                <div className="text-xs font-medium">{control.label}</div>
+              </Button>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};

@@ -1,0 +1,139 @@
+import { ChevronDown, ChevronRight, Folder, FolderOpen } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
+
+interface Category {
+  id: string;
+  name: string;
+  count: number;
+  color?: string;
+}
+
+interface CategoryTreeProps {
+  categories: Category[];
+  selectedCategory: string;
+  onCategorySelect: (categoryId: string) => void;
+}
+
+const CategoryTree = ({ categories, selectedCategory, onCategorySelect }: CategoryTreeProps) => {
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['all']));
+
+  const toggleCategory = (categoryId: string) => {
+    const newExpanded = new Set(expandedCategories);
+    if (newExpanded.has(categoryId)) {
+      newExpanded.delete(categoryId);
+    } else {
+      newExpanded.add(categoryId);
+    }
+    setExpandedCategories(newExpanded);
+  };
+
+  // Mock subcategories for demonstration
+  const getSubcategories = (categoryId: string) => {
+    if (categoryId === 'META') {
+      return [
+        { id: 'META.1', name: 'Core Protocols', count: 7 },
+        { id: 'META.3', name: 'Library Management', count: 8 },
+        { id: 'META.8', name: 'Gap Management', count: 12 },
+        { id: 'META.11', name: 'Agent Protocols', count: 20 }
+      ];
+    }
+    if (categoryId === 'K') {
+      return [
+        { id: 'K.1', name: 'Technical Knowledge', count: 67 },
+        { id: 'K.2', name: 'Library Science', count: 45 },
+        { id: 'K.3', name: 'Domain Expertise', count: 86 }
+      ];
+    }
+    return [];
+  };
+
+  const CategoryItem = ({ category, level = 0 }: { category: Category; level?: number }) => {
+    const isSelected = selectedCategory === category.id;
+    const isExpanded = expandedCategories.has(category.id);
+    const subcategories = getSubcategories(category.id);
+    const hasSubcategories = subcategories.length > 0;
+
+    return (
+      <div className={`${level > 0 ? 'ml-4' : ''}`}>
+        <Button
+          variant={isSelected ? 'default' : 'ghost'}
+          className={`w-full justify-start gap-2 h-auto p-2 ${
+            isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
+          }`}
+          onClick={() => onCategorySelect(category.id)}
+        >
+          <div className="flex items-center gap-2 flex-1">
+            {hasSubcategories && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-4 w-4 p-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleCategory(category.id);
+                }}
+              >
+                {isExpanded ? (
+                  <ChevronDown className="h-3 w-3" />
+                ) : (
+                  <ChevronRight className="h-3 w-3" />
+                )}
+              </Button>
+            )}
+            
+            {category.color && (
+              <div className={`w-3 h-3 rounded-full ${category.color}`} />
+            )}
+            
+            {hasSubcategories ? (
+              isExpanded ? (
+                <FolderOpen className="h-4 w-4" />
+              ) : (
+                <Folder className="h-4 w-4" />
+              )
+            ) : null}
+            
+            <span className="text-sm truncate flex-1 text-left">
+              {category.name}
+            </span>
+            
+            <Badge variant="secondary" className="text-xs ml-auto">
+              {category.count}
+            </Badge>
+          </div>
+        </Button>
+
+        {/* Subcategories */}
+        {hasSubcategories && isExpanded && (
+          <div className="mt-1 space-y-1">
+            {subcategories.map((subcat) => (
+              <CategoryItem
+                key={subcat.id}
+                category={subcat}
+                level={level + 1}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle className="text-sm">Categories</CardTitle>
+      </CardHeader>
+      <CardContent className="p-4 space-y-1">
+        {categories.map((category) => (
+          <CategoryItem key={category.id} category={category} />
+        ))}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default CategoryTree;

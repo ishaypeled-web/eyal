@@ -1,0 +1,358 @@
+import { X, Brain, Zap, Target, Activity, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
+
+interface AgentState {
+  agentId: string;
+  microPrompt: string;
+  loadedCassettes: number;
+  coherenceScore: number;
+  autonomyLevel: number;
+  isActive: boolean;
+}
+
+interface LibraryManagerXRayProps {
+  agentState: AgentState;
+  onClose: () => void;
+}
+
+const LibraryManagerXRay = ({ agentState, onClose }: LibraryManagerXRayProps) => {
+  const mandatoryCassettes = [
+    // Governance (7)
+    { id: 'META.3.001', name: 'Library Management Charter', status: 'loaded', coherence: 99.2 },
+    { id: 'META.3.002', name: 'Permission Matrix & Access Control', status: 'loaded', coherence: 98.7 },
+    { id: 'META.3.003', name: 'Cassette Creation Protocol', status: 'loaded', coherence: 99.1 },
+    { id: 'META.3.004', name: 'Quality Assurance Standards', status: 'loaded', coherence: 98.9 },
+    { id: 'META.3.005', name: 'Emergency Protocols', status: 'loaded', coherence: 97.8 },
+    { id: 'META.3.006', name: 'Cassette Writing Standards', status: 'loaded', coherence: 98.5 },
+    { id: 'META.3.007', name: 'Three-Level Reading Structure', status: 'loaded', coherence: 99.0 },
+    
+    // Gap Management (8)
+    { id: 'META.8.001', name: 'Gap Detection Protocol', status: 'loaded', coherence: 98.3 },
+    { id: 'META.8.002', name: 'Gap Report Format Standard', status: 'loaded', coherence: 97.9 },
+    { id: 'META.8.003', name: 'Library Request API', status: 'missing', coherence: 0 },
+    { id: 'META.8.004', name: 'Cassette Reception Protocol', status: 'loaded', coherence: 98.1 },
+    { id: 'META.8.005', name: 'Alternative Solutions Framework', status: 'loaded', coherence: 97.6 },
+    { id: 'META.8.006', name: 'Priority Assessment Matrix', status: 'loaded', coherence: 98.4 },
+    { id: 'META.8.007', name: 'Tracking & Monitoring System', status: 'loaded', coherence: 98.8 },
+    { id: 'META.8.008', name: 'Request Approval Criteria', status: 'loaded', coherence: 98.2 },
+    
+    // Knowledge (4)
+    { id: 'K.2.001', name: 'Library Science Fundamentals', status: 'loaded', coherence: 97.8 },
+    { id: 'K.2.002', name: 'Information Architecture', status: 'loaded', coherence: 98.0 },
+    { id: 'K.2.003', name: 'Metadata Standards', status: 'loaded', coherence: 97.5 },
+    { id: 'K.2.004', name: 'Search Algorithms', status: 'missing', coherence: 0 },
+    
+    // Methodologies (3)
+    { id: 'M.4.001', name: 'Quality Assessment Methods', status: 'loaded', coherence: 98.6 },
+    { id: 'M.4.002', name: 'Search Optimization', status: 'missing', coherence: 0 },
+    { id: 'M.4.003', name: 'Access Control Methods', status: 'loaded', coherence: 97.7 },
+    
+    // Tools (4)
+    { id: 'INT.2.003', name: 'Pinecone Vector DB', status: 'loaded', coherence: 98.9 },
+    { id: 'INT.14.001', name: 'Document Upload Protocol', status: 'loaded', coherence: 98.3 },
+    { id: 'INT.14.002', name: 'Knowledge Indexing Engine', status: 'loaded', coherence: 98.1 },
+    { id: 'INT.14.003', name: 'Vector Embedding Pipeline', status: 'missing', coherence: 0 }
+  ];
+
+  const thinkingProcess = [
+    {
+      step: 1,
+      thought: "Scanning library for missing cassettes...",
+      result: "Found 4 missing mandatory cassettes",
+      timestamp: "2025-09-02 14:32:15"
+    },
+    {
+      step: 2,
+      thought: "Analyzing gap priority: META.8.003 blocks NUCLEUS creation",
+      result: "Priority: CRITICAL (blocks 2 core systems)",
+      timestamp: "2025-09-02 14:32:16"
+    },
+    {
+      step: 3,
+      thought: "Checking approval score: 92/100 (exceeds 70 minimum)",
+      result: "APPROVED for immediate creation",
+      timestamp: "2025-09-02 14:32:17"
+    },
+    {
+      step: 4,
+      thought: "Decision: CREATE IMMEDIATELY",
+      result: "Opening cassette creator with prefilled data",
+      timestamp: "2025-09-02 14:32:18"
+    }
+  ];
+
+  const performanceMetrics = {
+    cassettes_created_today: 3,
+    searches_performed: 247,
+    avg_response_time: "45ms",
+    quality_checks_passed: "96.8%",
+    gaps_identified: 12,
+    coherence_maintained: "98.7%"
+  };
+
+  const activityLog = [
+    { time: "14:32:18", action: "Created cassette META.12.001", status: "success" },
+    { time: "14:30:45", action: "Validated 7 quality checks", status: "success" },
+    { time: "14:28:12", action: "Identified 3 new gaps", status: "info" },
+    { time: "14:25:33", action: "Updated coherence: 98.7%", status: "success" },
+    { time: "14:22:01", action: "Semantic search executed", status: "success" },
+    { time: "14:19:45", action: "Gap report generated", status: "info" },
+    { time: "14:15:22", action: "Cassette K.2.003 validated", status: "success" },
+    { time: "14:12:10", action: "Library scan completed", status: "success" }
+  ];
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'loaded': return <CheckCircle className="h-4 w-4 text-coherence-high" />;
+      case 'missing': return <AlertCircle className="h-4 w-4 text-coherence-low" />;
+      default: return <Clock className="h-4 w-4 text-muted-foreground" />;
+    }
+  };
+
+  const getActivityIcon = (status: string) => {
+    switch (status) {
+      case 'success': return <CheckCircle className="h-3 w-3 text-coherence-high" />;
+      case 'info': return <Activity className="h-3 w-3 text-primary" />;
+      case 'warning': return <AlertCircle className="h-3 w-3 text-coherence-mid" />;
+      case 'error': return <AlertCircle className="h-3 w-3 text-coherence-low" />;
+      default: return <Clock className="h-3 w-3 text-muted-foreground" />;
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-6xl max-h-[90vh] overflow-hidden">
+        <CardHeader className="border-b">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-dna rounded-lg">
+                <Brain className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  Library Manager Agent X-Ray
+                  <Badge variant="outline" className="gap-1">
+                    <div className="w-2 h-2 bg-coherence-high rounded-full animate-pulse" />
+                    Active
+                  </Badge>
+                </CardTitle>
+                <div className="text-sm text-muted-foreground">
+                  Agent ID: {agentState.agentId} • Micro-Prompt: {agentState.microPrompt}
+                </div>
+              </div>
+            </div>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardHeader>
+
+        <CardContent className="overflow-auto max-h-[70vh] p-6">
+          <Tabs defaultValue="identity" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="identity">Identity</TabsTrigger>
+              <TabsTrigger value="thinking">Thinking</TabsTrigger>
+              <TabsTrigger value="performance">Performance</TabsTrigger>
+              <TabsTrigger value="activity">Activity</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="identity" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Agent Status */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Agent Status</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Micro-Prompt</span>
+                      <Badge variant="outline">{agentState.microPrompt}</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Coherence Score</span>
+                      <div className="flex items-center gap-2">
+                        <Progress value={agentState.coherenceScore} className="w-20 h-2" />
+                        <span className="text-sm font-mono">{agentState.coherenceScore}%</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Autonomy Level</span>
+                      <div className="flex items-center gap-2">
+                        <Progress value={agentState.autonomyLevel} className="w-20 h-2" />
+                        <span className="text-sm font-mono">{agentState.autonomyLevel}%</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Loaded Cassettes</span>
+                      <span className="text-sm font-mono">{agentState.loadedCassettes}/26</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Quick Stats */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Quick Stats</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <div className="text-muted-foreground">Library Size</div>
+                        <div className="font-mono text-lg">935</div>
+                      </div>
+                      <div>
+                        <div className="text-muted-foreground">Active Gaps</div>
+                        <div className="font-mono text-lg text-coherence-low">123</div>
+                      </div>
+                      <div>
+                        <div className="text-muted-foreground">Quality Score</div>
+                        <div className="font-mono text-lg text-coherence-high">96.8%</div>
+                      </div>
+                      <div>
+                        <div className="text-muted-foreground">Response Time</div>
+                        <div className="font-mono text-lg">45ms</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Loaded Cassettes */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Mandatory Cassettes (26 total)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="max-h-64 overflow-y-auto space-y-2">
+                    {mandatoryCassettes.map((cassette) => (
+                      <div key={cassette.id} className="flex items-center justify-between p-2 border rounded text-sm">
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(cassette.status)}
+                          <span className="font-mono text-muted-foreground">{cassette.id}</span>
+                          <span className="truncate">{cassette.name}</span>
+                        </div>
+                        {cassette.status === 'loaded' && (
+                          <div className="flex items-center gap-2">
+                            <Progress value={cassette.coherence} className="w-16 h-1" />
+                            <span className="font-mono text-xs">{cassette.coherence}%</span>
+                          </div>
+                        )}
+                        {cassette.status === 'missing' && (
+                          <Badge variant="destructive" className="text-xs">Missing</Badge>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="thinking" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Decision Process Chain</CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    Real-time agent thinking and decision making
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {thinkingProcess.map((process, index) => (
+                      <div key={index} className="relative">
+                        {index < thinkingProcess.length - 1 && (
+                          <div className="absolute left-4 top-8 w-px h-8 bg-border" />
+                        )}
+                        <div className="flex gap-3">
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-xs font-bold">
+                            {process.step}
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <div className="text-sm font-medium">{process.thought}</div>
+                            <div className="text-sm text-muted-foreground">{process.result}</div>
+                            <div className="text-xs text-muted-foreground font-mono">{process.timestamp}</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="performance" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Object.entries(performanceMetrics).map(([key, value]) => (
+                  <Card key={key}>
+                    <CardContent className="p-4 text-center">
+                      <div className="text-2xl font-bold text-primary mb-1">{value}</div>
+                      <div className="text-xs text-muted-foreground capitalize">
+                        {key.replace(/_/g, ' ')}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Performance Trends</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Average Response Time</span>
+                        <span className="text-coherence-high">Excellent</span>
+                      </div>
+                      <Progress value={85} className="h-2" />
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Quality Check Success Rate</span>
+                        <span className="text-coherence-high">96.8%</span>
+                      </div>
+                      <Progress value={96.8} className="h-2" />
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Coherence Maintenance</span>
+                        <span className="text-coherence-high">98.7%</span>
+                      </div>
+                      <Progress value={98.7} className="h-2" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="activity" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Recent Activity Log</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="max-h-64 overflow-y-auto space-y-2">
+                    {activityLog.map((log, index) => (
+                      <div key={index} className="flex items-center gap-3 p-2 border rounded text-sm">
+                        {getActivityIcon(log.status)}
+                        <span className="font-mono text-muted-foreground text-xs">{log.time}</span>
+                        <span className="flex-1">{log.action}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default LibraryManagerXRay;

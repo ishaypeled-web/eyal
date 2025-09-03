@@ -1,0 +1,490 @@
+import { useState } from 'react';
+import { ArrowRight, ArrowLeft, Sparkles, Crown, Building, Users, Heart, Star, CheckCircle, Play, Rocket } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Slider } from '@/components/ui/slider';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Separator } from '@/components/ui/separator';
+import DNADiscovery from './DNADiscovery';
+import DNAWorkshop from './DNAWorkshop';
+import { useToast } from '@/hooks/use-toast';
+
+const NucleusCreationWizard = () => {
+  const { toast } = useToast();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [selectedEdition, setSelectedEdition] = useState('');
+  const [dnaProfile, setDnaProfile] = useState(null);
+  const [refinedDNA, setRefinedDNA] = useState(null);
+  const [configuration, setConfiguration] = useState({
+    autonomyLevel: [75],
+    cassetteSets: [] as string[],
+    integrations: [] as string[]
+  });
+  const [isLaunching, setIsLaunching] = useState(false);
+
+  const editions = [
+    {
+      id: 'personal',
+      name: 'Personal',
+      icon: Heart,
+      color: 'bg-nucleus-personal',
+      description: 'Individual growth and self-optimization',
+      features: ['Personal DNA mapping', 'Individual agent orchestra', 'Private knowledge base', 'Self-improvement protocols'],
+      price: 'Free',
+      recommended: false
+    },
+    {
+      id: 'corporate',
+      name: 'Corporate',
+      icon: Building,
+      color: 'bg-nucleus-corporate',
+      description: 'Business intelligence and workflow automation',
+      features: ['Team collaboration DNA', 'Enterprise agent deployment', 'Corporate knowledge integration', 'Business process automation'],
+      price: '$99/month',
+      recommended: true
+    },
+    {
+      id: 'political',
+      name: 'Political',
+      icon: Crown,
+      color: 'bg-nucleus-political',
+      description: 'Strategic influence and social dynamics',
+      features: ['Political strategy DNA', 'Influence network mapping', 'Public sentiment analysis', 'Campaign optimization'],
+      price: '$299/month',
+      recommended: false
+    },
+    {
+      id: 'family',
+      name: 'Family',
+      icon: Users,
+      color: 'bg-nucleus-family',
+      description: 'Family coordination and legacy building',
+      features: ['Family DNA inheritance', 'Multi-generational planning', 'Family knowledge archive', 'Legacy preservation'],
+      price: '$49/month',
+      recommended: false
+    },
+    {
+      id: 'legacy',
+      name: 'Legacy',
+      icon: Star,
+      color: 'bg-nucleus-legacy',
+      description: 'Long-term impact and knowledge preservation',
+      features: ['Immortal DNA encoding', 'Knowledge time capsules', 'Impact simulation', 'Future-proofing protocols'],
+      price: '$499/month',
+      recommended: false
+    }
+  ];
+
+  const cassetteSets = [
+    { id: 'foundation', name: 'Foundation Set', description: 'Core system protocols', count: 52 },
+    { id: 'advanced', name: 'Advanced Set', description: 'Extended capabilities', count: 128 },
+    { id: 'specialized', name: 'Specialized Set', description: 'Domain-specific knowledge', count: 89 },
+    { id: 'experimental', name: 'Experimental Set', description: 'Cutting-edge features', count: 34 }
+  ];
+
+  const integrations = [
+    { id: 'email', name: 'Email Integration', description: 'Gmail, Outlook, etc.' },
+    { id: 'calendar', name: 'Calendar Sync', description: 'Google Calendar, Outlook' },
+    { id: 'storage', name: 'Cloud Storage', description: 'Drive, Dropbox, OneDrive' },
+    { id: 'social', name: 'Social Networks', description: 'LinkedIn, Twitter, etc.' },
+    { id: 'productivity', name: 'Productivity Tools', description: 'Notion, Slack, Teams' },
+    { id: 'analytics', name: 'Analytics Platforms', description: 'Google Analytics, etc.' }
+  ];
+
+  const steps = [
+    { number: 1, title: 'Select Edition', description: 'Choose your NUCLEUS edition' },
+    { number: 2, title: 'DNA Discovery', description: 'Discover your unique DNA profile' },
+    { number: 3, title: 'DNA Refinement', description: 'Refine and optimize your DNA' },
+    { number: 4, title: 'Configuration', description: 'Configure system settings' },
+    { number: 5, title: 'Launch', description: 'Launch your NUCLEUS' }
+  ];
+
+  const handleNext = () => {
+    if (currentStep < 5) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleLaunch = async () => {
+    setIsLaunching(true);
+    
+    // Simulate launch sequence
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
+    toast({
+      title: "NUCLEUS Launched Successfully!",
+      description: `Your ${selectedEdition} NUCLEUS is now active and ready.`,
+    });
+    
+    setIsLaunching(false);
+    // Navigate to main dashboard or reset wizard
+  };
+
+  const isStepValid = () => {
+    switch (currentStep) {
+      case 1: return selectedEdition !== '';
+      case 2: return dnaProfile !== null;
+      case 3: return refinedDNA !== null;
+      case 4: return true;
+      case 5: return true;
+      default: return false;
+    }
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold mb-2">Choose Your NUCLEUS Edition</h2>
+              <p className="text-muted-foreground">Select the edition that best fits your needs and goals</p>
+            </div>
+            
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {editions.map((edition) => {
+                const Icon = edition.icon;
+                return (
+                  <Card 
+                    key={edition.id}
+                    className={`cursor-pointer transition-all duration-200 hover:scale-105 ${
+                      selectedEdition === edition.id ? 'ring-2 ring-primary shadow-lg' : ''
+                    } ${edition.recommended ? 'border-primary' : ''}`}
+                    onClick={() => setSelectedEdition(edition.id)}
+                  >
+                    <CardHeader className="text-center">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className={`p-3 rounded-full ${edition.color} text-white`}>
+                          <Icon className="h-6 w-6" />
+                        </div>
+                        {edition.recommended && (
+                          <Badge variant="default" className="text-xs">
+                            Recommended
+                          </Badge>
+                        )}
+                      </div>
+                      <CardTitle className="text-xl">{edition.name}</CardTitle>
+                      <p className="text-sm text-muted-foreground">{edition.description}</p>
+                      <div className="text-lg font-bold text-primary">{edition.price}</div>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {edition.features.map((feature, index) => (
+                          <li key={index} className="flex items-center text-sm">
+                            <CheckCircle className="h-4 w-4 mr-2 text-coherence-high" />
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        );
+
+      case 2:
+        return (
+          <DNADiscovery 
+            onComplete={(profile) => {
+              setDnaProfile(profile);
+              handleNext();
+            }}
+          />
+        );
+
+      case 3:
+        return (
+          <DNAWorkshop 
+            dnaProfile={dnaProfile}
+            onComplete={(refined) => {
+              setRefinedDNA(refined);
+              handleNext();
+            }}
+          />
+        );
+
+      case 4:
+        return (
+          <div className="space-y-8">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold mb-2">System Configuration</h2>
+              <p className="text-muted-foreground">Configure your NUCLEUS settings and preferences</p>
+            </div>
+
+            {/* Autonomy Level */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Autonomy Level</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  How independently should your NUCLEUS operate?
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between text-sm">
+                    <span>Conservative (30%)</span>
+                    <span className="font-medium">{configuration.autonomyLevel[0]}%</span>
+                    <span>Autonomous (95%)</span>
+                  </div>
+                  <Slider
+                    value={configuration.autonomyLevel}
+                    onValueChange={(value) => setConfiguration(prev => ({ ...prev, autonomyLevel: value }))}
+                    max={95}
+                    min={30}
+                    step={5}
+                    className="w-full"
+                  />
+                  <div className="text-xs text-muted-foreground">
+                    Higher autonomy allows more independent decision-making but requires more trust in the system.
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Cassette Sets */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Cassette Sets</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Select which knowledge sets to load into your NUCLEUS
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {cassetteSets.map((set) => (
+                    <div key={set.id} className="flex items-center space-x-3 p-3 border rounded-lg">
+                      <Checkbox
+                        id={set.id}
+                        checked={configuration.cassetteSets.includes(set.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setConfiguration(prev => ({
+                              ...prev,
+                              cassetteSets: [...prev.cassetteSets, set.id]
+                            }));
+                          } else {
+                            setConfiguration(prev => ({
+                              ...prev,
+                              cassetteSets: prev.cassetteSets.filter(id => id !== set.id)
+                            }));
+                          }
+                        }}
+                      />
+                      <div className="flex-1">
+                        <label htmlFor={set.id} className="text-sm font-medium cursor-pointer">
+                          {set.name}
+                        </label>
+                        <p className="text-xs text-muted-foreground">{set.description}</p>
+                        <div className="text-xs text-primary">{set.count} cassettes</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Integrations */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">System Integrations</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Connect your NUCLEUS to external services
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {integrations.map((integration) => (
+                    <div key={integration.id} className="flex items-center space-x-3 p-3 border rounded-lg">
+                      <Checkbox
+                        id={integration.id}
+                        checked={configuration.integrations.includes(integration.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setConfiguration(prev => ({
+                              ...prev,
+                              integrations: [...prev.integrations, integration.id]
+                            }));
+                          } else {
+                            setConfiguration(prev => ({
+                              ...prev,
+                              integrations: prev.integrations.filter(id => id !== integration.id)
+                            }));
+                          }
+                        }}
+                      />
+                      <div className="flex-1">
+                        <label htmlFor={integration.id} className="text-sm font-medium cursor-pointer">
+                          {integration.name}
+                        </label>
+                        <p className="text-xs text-muted-foreground">{integration.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      case 5:
+        return (
+          <div className="text-center space-y-8">
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold mb-2">Ready to Launch</h2>
+              <p className="text-muted-foreground">Your NUCLEUS is configured and ready for activation</p>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Launch Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="text-left space-y-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Edition:</span>
+                    <div className="text-muted-foreground">{editions.find(e => e.id === selectedEdition)?.name}</div>
+                  </div>
+                  <div>
+                    <span className="font-medium">Autonomy Level:</span>
+                    <div className="text-muted-foreground">{configuration.autonomyLevel[0]}%</div>
+                  </div>
+                  <div>
+                    <span className="font-medium">Cassette Sets:</span>
+                    <div className="text-muted-foreground">{configuration.cassetteSets.length} selected</div>
+                  </div>
+                  <div>
+                    <span className="font-medium">Integrations:</span>
+                    <div className="text-muted-foreground">{configuration.integrations.length} configured</div>
+                  </div>
+                </div>
+                <Separator />
+                <div className="text-center">
+                  <Button 
+                    size="lg" 
+                    onClick={handleLaunch}
+                    disabled={isLaunching}
+                    className="gap-2"
+                  >
+                    {isLaunching ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Launching...
+                      </>
+                    ) : (
+                      <>
+                        <Rocket className="h-5 w-5" />
+                        Launch NUCLEUS
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {isLaunching && (
+              <div className="space-y-4">
+                <div className="animate-nucleus-forming mx-auto w-24 h-24 bg-gradient-dna rounded-full flex items-center justify-center">
+                  <Sparkles className="h-12 w-12 text-white animate-pulse" />
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Initializing NUCLEUS systems...
+                </div>
+              </div>
+            )}
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background p-6">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold mb-2">NUCLEUS Creation Wizard</h1>
+          <p className="text-muted-foreground">Create your personalized THRIVE NUCLEUS in 5 steps</p>
+        </div>
+
+        {/* Progress Steps */}
+        <div className="flex items-center justify-center mb-8">
+          <div className="flex items-center space-x-4">
+            {steps.map((step, index) => (
+              <div key={step.number} className="flex items-center">
+                <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
+                  currentStep >= step.number 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'bg-muted text-muted-foreground'
+                }`}>
+                  {currentStep > step.number ? (
+                    <CheckCircle className="h-5 w-5" />
+                  ) : (
+                    step.number
+                  )}
+                </div>
+                <div className="ml-2 hidden md:block">
+                  <div className={`text-sm font-medium ${
+                    currentStep >= step.number ? 'text-foreground' : 'text-muted-foreground'
+                  }`}>
+                    {step.title}
+                  </div>
+                  <div className="text-xs text-muted-foreground">{step.description}</div>
+                </div>
+                {index < steps.length - 1 && (
+                  <ArrowRight className="h-4 w-4 mx-4 text-muted-foreground" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <Progress value={(currentStep / 5) * 100} className="h-2" />
+        </div>
+
+        {/* Step Content */}
+        <div className="mb-8">
+          {renderStepContent()}
+        </div>
+
+        {/* Navigation */}
+        {currentStep < 5 && (
+          <div className="flex justify-between">
+            <Button 
+              variant="outline" 
+              onClick={handlePrevious}
+              disabled={currentStep === 1}
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Previous
+            </Button>
+            <Button 
+              onClick={handleNext}
+              disabled={!isStepValid()}
+              className="gap-2"
+            >
+              Next
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default NucleusCreationWizard;

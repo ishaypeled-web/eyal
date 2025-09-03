@@ -1,0 +1,7 @@
+// THRIVE SYSTEM - Coherence Monitoring Components Export
+// Centralized export for all coherence monitoring components
+
+export { default as CoherenceMonitorDashboard } from './CoherenceMonitorDashboard';
+export { default as CoherenceAlertDashboard } from './CoherenceAlertDashboard';
+export { default as CoherenceHistoryView } from './CoherenceHistoryView';
+export { default as OptimizationPanel } from './OptimizationPanel';

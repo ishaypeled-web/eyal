@@ -1,0 +1,248 @@
+import React, { useState, useEffect } from 'react';
+import { AlertTriangle, CheckCircle, XCircle, Clock, Bell, Settings } from 'lucide-react';
+import { ThriveCard, MetricCard, StatusBadge, Button, Badge } from '@/components/common';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
+import { CoherenceAlert, ResolutionMetrics } from '@/types';
+
+interface CoherenceAlertDashboardProps {
+  className?: string;
+}
+
+export const CoherenceAlertDashboard: React.FC<CoherenceAlertDashboardProps> = ({ 
+  className 
+}) => {
+  const [alerts, setAlerts] = useState<CoherenceAlert[]>([
+    {
+      id: 'alert-001',
+      severity: 'CRITICAL',
+      title: 'Agent Coherence Drop',
+      description: 'DNA Processing Agent coherence dropped to 87%',
+      timestamp: new Date().toISOString(),
+      component: 'agent-dna-001',
+      threshold: 90,
+      currentValue: 87,
+      status: 'active',
+      estimatedResolution: '5 minutes'
+    },
+    {
+      id: 'alert-002', 
+      severity: 'WARNING',
+      title: 'System Response Time',
+      description: 'Average response time increased to 95ms',
+      timestamp: new Date(Date.now() - 300000).toISOString(),
+      component: 'system-core',
+      threshold: 80,
+      currentValue: 95,
+      status: 'acknowledged',
+      estimatedResolution: '2 minutes'
+    }
+  ]);
+
+  const [resolutionMetrics] = useState<ResolutionMetrics>({
+    totalAlerts: 47,
+    resolvedToday: 23,
+    averageResolutionTime: '3.2 minutes',
+    criticalAlerts: 2,
+    warningAlerts: 5
+  });
+
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'INFO': return 'text-coherence-high border-coherence-high/30 bg-coherence-high/10';
+      case 'WARNING': return 'text-coherence-mid border-coherence-mid/30 bg-coherence-mid/10';
+      case 'CRITICAL': return 'text-orange-400 border-orange-400/30 bg-orange-400/10';
+      case 'EMERGENCY': return 'text-destructive border-destructive/30 bg-destructive/10';
+      default: return 'text-muted-foreground border-border/30 bg-muted/10';
+    }
+  };
+
+  const getSeverityIcon = (severity: string) => {
+    switch (severity) {
+      case 'INFO': return CheckCircle;
+      case 'WARNING': return Clock;
+      case 'CRITICAL': return AlertTriangle;
+      case 'EMERGENCY': return XCircle;
+      default: return Bell;
+    }
+  };
+
+  const handleAlertAction = (alertId: string, action: 'acknowledge' | 'resolve' | 'escalate') => {
+    setAlerts(prev => prev.map(alert => 
+      alert.id === alertId 
+        ? { ...alert, status: action === 'resolve' ? 'resolved' : 'acknowledged' }
+        : alert
+    ));
+  };
+
+  const activeAlerts = alerts.filter(alert => alert.status === 'active');
+  const acknowledgedAlerts = alerts.filter(alert => alert.status === 'acknowledged');
+
+  return (
+    <ThriveCard variant="glassmorphism" className={cn('p-6', className)}>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <AlertTriangle className="w-6 h-6 text-primary" />
+          <h2 className="text-xl font-semibold text-foreground">Coherence Alert Dashboard</h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-destructive border-destructive/30">
+            {activeAlerts.length} Active
+          </Badge>
+          <Button variant="outline" size="sm">
+            <Settings className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Overview Metrics */}
+      <div className="grid grid-cols-4 gap-4 mb-6">
+        <MetricCard
+          title="Total Alerts"
+          value={resolutionMetrics.totalAlerts}
+          icon={Bell}
+          variant="default"
+        />
+        <MetricCard
+          title="Resolved Today"
+          value={resolutionMetrics.resolvedToday}
+          change="+15%"
+          icon={CheckCircle}
+          variant="success"
+        />
+        <MetricCard
+          title="Avg Resolution"
+          value={resolutionMetrics.averageResolutionTime}
+          icon={Clock}
+          variant="default"
+        />
+        <MetricCard
+          title="Critical"
+          value={resolutionMetrics.criticalAlerts}
+          icon={XCircle}
+          variant="error"
+        />
+      </div>
+
+      {/* Alert Management Tabs */}
+      <Tabs defaultValue="active" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="active">
+            Active Alerts ({activeAlerts.length})
+          </TabsTrigger>
+          <TabsTrigger value="acknowledged">
+            Acknowledged ({acknowledgedAlerts.length})
+          </TabsTrigger>
+          <TabsTrigger value="history">History</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="active" className="mt-4">
+          <ScrollArea className="h-96">
+            <div className="space-y-3">
+              {activeAlerts.map(alert => {
+                const Icon = getSeverityIcon(alert.severity);
+                return (
+                  <ThriveCard 
+                    key={alert.id}
+                    variant="solid"
+                    className={cn(
+                      'p-4 transition-all duration-200',
+                      getSeverityColor(alert.severity)
+                    )}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-3">
+                        <Icon className="w-5 h-5 mt-0.5" />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-medium">{alert.title}</h4>
+                            <Badge variant="outline" className="text-xs">
+                              {alert.severity}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            {alert.description}
+                          </p>
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            <span>Component: {alert.component}</span>
+                            <span>Current: {alert.currentValue}%</span>
+                            <span>Threshold: {alert.threshold}%</span>
+                            <span>ETA: {alert.estimatedResolution}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleAlertAction(alert.id, 'acknowledge')}
+                        >
+                          Acknowledge
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleAlertAction(alert.id, 'resolve')}
+                        >
+                          Resolve
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="text-destructive border-destructive/30"
+                          onClick={() => handleAlertAction(alert.id, 'escalate')}
+                        >
+                          Escalate
+                        </Button>
+                      </div>
+                    </div>
+                  </ThriveCard>
+                );
+              })}
+            </div>
+          </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value="acknowledged" className="mt-4">
+          <ScrollArea className="h-96">
+            <div className="space-y-3">
+              {acknowledgedAlerts.map(alert => {
+                const Icon = getSeverityIcon(alert.severity);
+                return (
+                  <ThriveCard 
+                    key={alert.id}
+                    variant="solid"
+                    className="p-4 opacity-75"
+                  >
+                    <div className="flex items-start gap-3">
+                      <Icon className="w-5 h-5 mt-0.5 text-muted-foreground" />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-medium text-muted-foreground">{alert.title}</h4>
+                          <StatusBadge status="processing" text="Acknowledged" />
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {alert.description}
+                        </p>
+                      </div>
+                    </div>
+                  </ThriveCard>
+                );
+              })}
+            </div>
+          </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value="history" className="mt-4">
+          <div className="text-center py-8 text-muted-foreground">
+            <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p>Alert history will be displayed here</p>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </ThriveCard>
+  );
+};
+
+export default CoherenceAlertDashboard;

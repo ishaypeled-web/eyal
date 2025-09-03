@@ -1,0 +1,69 @@
+import React from 'react';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { StatusBadgeProps } from '@/types';
+import { Circle } from 'lucide-react';
+
+export const StatusBadge: React.FC<StatusBadgeProps> = ({
+  status,
+  text,
+  className,
+  children
+}) => {
+  const getStatusColor = () => {
+    switch (status) {
+      case 'active':
+        return 'bg-coherence-high/10 text-coherence-high border-coherence-high/20';
+      case 'processing':
+        return 'bg-primary/10 text-primary border-primary/20';
+      case 'warning':
+        return 'bg-coherence-mid/10 text-coherence-mid border-coherence-mid/20';
+      case 'error':
+        return 'bg-destructive/10 text-destructive border-destructive/20';
+      case 'inactive':
+        return 'bg-muted/10 text-muted-foreground border-muted/20';
+      case 'pending':
+        return 'bg-secondary/10 text-secondary border-secondary/20';
+      case 'completed':
+        return 'bg-coherence-high/10 text-coherence-high border-coherence-high/20';
+      default:
+        return 'bg-muted/10 text-muted-foreground border-muted/20';
+    }
+  };
+
+  const getStatusIcon = () => {
+    switch (status) {
+      case 'active':
+        return <Circle className="w-2 h-2 fill-current" />;
+      case 'processing':
+        return <Circle className="w-2 h-2 fill-current animate-pulse" />;
+      case 'warning':
+        return <Circle className="w-2 h-2 fill-current" />;
+      case 'error':
+        return <Circle className="w-2 h-2 fill-current" />;
+      case 'inactive':
+        return <Circle className="w-2 h-2" />;
+      default:
+        return <Circle className="w-2 h-2 fill-current" />;
+    }
+  };
+
+  const displayText = text || status.charAt(0).toUpperCase() + status.slice(1);
+
+  return (
+    <Badge 
+      variant="outline"
+      className={cn(
+        'flex items-center gap-1.5 text-xs font-medium',
+        getStatusColor(),
+        className
+      )}
+    >
+      {getStatusIcon()}
+      {displayText}
+      {children}
+    </Badge>
+  );
+};
+
+export default StatusBadge;

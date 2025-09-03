@@ -1,0 +1,46 @@
+// THRIVE OS Header Component
+import React from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Bell, Activity, Square } from 'lucide-react';
+import { useSystemMetrics } from '@/hooks/useSystemMetrics';
+
+export const ThriveOSHeader = () => {
+  const { metrics } = useSystemMetrics();
+
+  const getCoherenceColor = (coherence: number) => {
+    if (coherence >= 98) return 'bg-os-secondary text-os-bg-primary';
+    if (coherence >= 95) return 'bg-os-warning text-os-bg-primary';
+    return 'bg-os-accent text-white';
+  };
+
+  return (
+    <header className="h-15 bg-os-bg-secondary border-b border-os-bg-tertiary px-6 flex items-center justify-between">
+      {/* System Identity */}
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-gradient-dna rounded-full flex items-center justify-center">
+            <div className="w-4 h-4 bg-white rounded-full" />
+          </div>
+          <Badge className={getCoherenceColor(metrics.coherence)}>
+            ACTIVE - {metrics.coherence}% COHERENT
+          </Badge>
+        </div>
+        <h1 className="text-xl font-semibold text-os-primary">THRIVE SYSTEM OS</h1>
+      </div>
+
+      {/* Control Buttons */}
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="sm" className="text-os-primary hover:bg-os-bg-tertiary">
+          <Bell className="w-4 h-4" />
+        </Button>
+        <Button variant="ghost" size="sm" className="text-os-primary hover:bg-os-bg-tertiary">
+          <Activity className="w-4 h-4" />
+        </Button>
+        <Button variant="ghost" size="sm" className="text-os-accent hover:bg-os-accent/20">
+          <Square className="w-4 h-4" />
+        </Button>
+      </div>
+    </header>
+  );
+};

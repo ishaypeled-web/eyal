@@ -1,0 +1,310 @@
+import React, { useState } from 'react';
+import { Settings, Zap, RotateCcw, Play, Pause, TrendingUp, Clock } from 'lucide-react';
+import { ThriveCard, Button, Badge } from '@/components/common';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
+import { Optimization } from '@/types';
+
+interface OptimizationPanelProps {
+  className?: string;
+}
+
+export const OptimizationPanel: React.FC<OptimizationPanelProps> = ({ 
+  className 
+}) => {
+  const [autoOptimization, setAutoOptimization] = useState(true);
+  const [threshold, setThreshold] = useState([95]);
+  const [monitoringInterval, setMonitoringInterval] = useState([5]);
+  const [isRecalculating, setIsRecalculating] = useState(false);
+
+  const optimizationMetrics = {
+    applied_count: 47,
+    success_rate: 94.7,
+    recent_optimizations: [
+      {
+        id: 'opt-001',
+        type: 'agent_rebalancing',
+        applied_at: new Date().toISOString(),
+        target_component: 'DNA Processing Agent',
+        improvement: 3.2,
+        status: 'successful',
+        description: 'Redistributed cassette load to improve response time'
+      },
+      {
+        id: 'opt-002', 
+        type: 'memory_optimization',
+        applied_at: new Date(Date.now() - 300000).toISOString(),
+        target_component: 'Central Memory',
+        improvement: 1.8,
+        status: 'successful',
+        description: 'Cleaned deprecated conversation threads'
+      },
+      {
+        id: 'opt-003',
+        type: 'cache_refresh',
+        applied_at: new Date(Date.now() - 600000).toISOString(),
+        target_component: 'Cassette Cache',
+        improvement: 2.1,
+        status: 'successful',
+        description: 'Refreshed frequently used cassette cache'
+      }
+    ] as Optimization[]
+  };
+
+  const handleForceRecalculation = async () => {
+    setIsRecalculating(true);
+    // Simulate recalculation process
+    setTimeout(() => {
+      setIsRecalculating(false);
+    }, 3000);
+  };
+
+  const handleThresholdChange = (value: number[]) => {
+    setThreshold(value);
+  };
+
+  const handleIntervalChange = (value: number[]) => {
+    setMonitoringInterval(value);
+  };
+
+  const getOptimizationTypeIcon = (type: string) => {
+    switch (type) {
+      case 'agent_rebalancing': return TrendingUp;
+      case 'memory_optimization': return RotateCcw;
+      case 'cache_refresh': return Zap;
+      default: return Settings;
+    }
+  };
+
+  const getOptimizationTypeColor = (type: string) => {
+    switch (type) {
+      case 'agent_rebalancing': return 'text-primary border-primary/30 bg-primary/10';
+      case 'memory_optimization': return 'text-secondary border-secondary/30 bg-secondary/10';
+      case 'cache_refresh': return 'text-accent border-accent/30 bg-accent/10';
+      default: return 'text-muted-foreground border-muted/30 bg-muted/10';
+    }
+  };
+
+  return (
+    <ThriveCard variant="glassmorphism" className={cn('p-6', className)}>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <Settings className="w-6 h-6 text-primary" />
+          <h2 className="text-xl font-semibold text-foreground">Coherence Optimization</h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-coherence-high border-coherence-high/30">
+            {optimizationMetrics.success_rate}% Success Rate
+          </Badge>
+          <Switch
+            checked={autoOptimization}
+            onCheckedChange={setAutoOptimization}
+          />
+          <span className="text-sm text-muted-foreground">Auto</span>
+        </div>
+      </div>
+
+      <Tabs defaultValue="automatic" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="automatic">Automatic Optimizations</TabsTrigger>
+          <TabsTrigger value="manual">Manual Controls</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="automatic" className="mt-6">
+          {/* Optimization Metrics */}
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <ThriveCard variant="solid" className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Zap className="w-4 h-4 text-accent" />
+                <span className="text-sm font-medium">Applied Today</span>
+              </div>
+              <div className="text-2xl font-bold text-foreground">
+                {optimizationMetrics.applied_count}
+              </div>
+            </ThriveCard>
+
+            <ThriveCard variant="solid" className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="w-4 h-4 text-coherence-high" />
+                <span className="text-sm font-medium">Success Rate</span>
+              </div>
+              <div className="text-2xl font-bold text-coherence-high">
+                {optimizationMetrics.success_rate}%
+              </div>
+            </ThriveCard>
+
+            <ThriveCard variant="solid" className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Clock className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium">Last Applied</span>
+              </div>
+              <div className="text-sm font-medium text-foreground">
+                2 minutes ago
+              </div>
+            </ThriveCard>
+          </div>
+
+          {/* Recent Optimizations */}
+          <div className="mb-4">
+            <h3 className="text-lg font-medium mb-3">Recent Optimizations</h3>
+            <ScrollArea className="h-64">
+              <div className="space-y-3">
+                {optimizationMetrics.recent_optimizations.map(opt => {
+                  const Icon = getOptimizationTypeIcon(opt.type);
+                  return (
+                  <ThriveCard 
+                    key={opt.id}
+                    variant="solid"
+                      className={cn('p-4', getOptimizationTypeColor(opt.type))}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3">
+                          <Icon className="w-5 h-5 mt-0.5" />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-medium">{opt.target_component}</h4>
+                              <Badge variant="outline" className="text-xs">
+                                {opt.type.replace('_', ' ')}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              {opt.description}
+                            </p>
+                            <div className="flex items-center gap-4 text-xs">
+                              <span className="text-coherence-high">
+                                +{opt.improvement}% improvement
+                              </span>
+                              <span className="text-muted-foreground">
+                                {new Date(opt.applied_at).toLocaleTimeString()}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </ThriveCard>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="manual" className="mt-6">
+          <div className="space-y-6">
+            {/* Threshold Control */}
+            <ThriveCard variant="solid" className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <label className="text-sm font-medium">Coherence Threshold</label>
+                <span className="text-sm text-muted-foreground">{threshold[0]}%</span>
+              </div>
+              <Slider
+                value={threshold}
+                onValueChange={handleThresholdChange}
+                max={100}
+                min={80}
+                step={1}
+                className="w-full"
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                Trigger optimizations when coherence drops below this value
+              </p>
+            </ThriveCard>
+
+            {/* Monitoring Interval */}
+            <ThriveCard variant="solid" className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <label className="text-sm font-medium">Monitoring Interval</label>
+                <span className="text-sm text-muted-foreground">{monitoringInterval[0]}s</span>
+              </div>
+              <Slider
+                value={monitoringInterval}
+                onValueChange={handleIntervalChange}
+                max={60}
+                min={1}
+                step={1}
+                className="w-full"
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                How often to check coherence levels
+              </p>
+            </ThriveCard>
+
+            {/* Manual Actions */}
+            <ThriveCard variant="solid" className="p-4">
+              <h3 className="text-sm font-medium mb-4">Manual Actions</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">Force Recalculation</p>
+                    <p className="text-xs text-muted-foreground">
+                      Recalculate all coherence scores immediately
+                    </p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleForceRecalculation}
+                    disabled={isRecalculating}
+                  >
+                    {isRecalculating ? (
+                      <>
+                        <RotateCcw className="w-4 h-4 mr-2 animate-spin" />
+                        Calculating...
+                      </>
+                    ) : (
+                      <>
+                        <RotateCcw className="w-4 h-4 mr-2" />
+                        Recalculate
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {isRecalculating && (
+                  <div className="mt-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xs text-muted-foreground">Progress:</span>
+                      <span className="text-xs text-primary">67%</span>
+                    </div>
+                    <Progress value={67} className="h-2" />
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">Clear Cache</p>
+                    <p className="text-xs text-muted-foreground">
+                      Clear all cached optimization data
+                    </p>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    Clear Cache
+                  </Button>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">Reset to Defaults</p>
+                    <p className="text-xs text-muted-foreground">
+                      Reset all optimization settings to default values
+                    </p>
+                  </div>
+                  <Button variant="outline" size="sm" className="text-destructive border-destructive/30">
+                    Reset
+                  </Button>
+                </div>
+              </div>
+            </ThriveCard>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </ThriveCard>
+  );
+};
+
+export default OptimizationPanel;
